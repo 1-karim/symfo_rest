@@ -33,47 +33,6 @@ class ApiController extends FOSRestController
 
 
 
-
-
-
-
-
-
-
-
-
-
-    /**
-     * @Rest\Get("/api/users")
-     *
-     *
-     */
-    public function listAction()
-    {
-        $users[] = array();
-        $id = $this->get('security.token_storage')->getToken()->getUser();
-
-        $repository  = $this->getDoctrine()->getRepository('AppBundle:User');
-        $list = $repository->findAll();
-        foreach ($list as $k => $value){
-            $u = new UserObject();
-            $u->id = $value->getId();
-            $u->username = $value->getUsername();
-            $u->email = $value->getEmail();
-            $u->role = $value->getRoles()[0];
-            $u->lastLogin = $value->getLastLogin();
-            $u->enabled = $value->isEnabled();
-            $value->getLastLogin();
-            $users[$k] = $u;
-
-    }
-        return $this->view($users);
-
-
-    }
-
-
-
     /**
      * @Rest\Get("/api/users/findbyid")
      * @Rest\QueryParam(name="id", requirements="\d+")
@@ -92,6 +51,33 @@ class ApiController extends FOSRestController
 
     }
 
+    /**
+     * @Rest\Get("/api/users")
+     *
+     *
+     */
+    public function listAction()
+    {
+        $users[] = array();
+
+        $repository  = $this->getDoctrine()->getRepository('AppBundle:User');
+        $list = $repository->findAll();
+        foreach ($list as $k => $value){
+            $u = new UserObject();
+            $u->id = $value->getId();
+            $u->username = $value->getUsername();
+            $u->email = $value->getEmail();
+            $u->role = $value->getRoles()[0];
+            $u->lastLogin = $value->getLastLogin();
+            $u->enabled = $value->isEnabled();
+            $value->getLastLogin();
+            $users[$k] = $u;
+
+        }
+        return $this->view($users);
+
+
+    }
 
 
     /**
@@ -120,6 +106,7 @@ class ApiController extends FOSRestController
         //return $this->handleView($view);*/
 
     }
+
 
 
 
@@ -181,6 +168,7 @@ class ApiController extends FOSRestController
 
 
     }
+
 
     //check password
     public function validPassword($user, $oldPassword){
