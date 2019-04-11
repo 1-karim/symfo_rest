@@ -70,7 +70,7 @@ class ApiController extends FOSRestController
             $u->role = $value->getRoles()[0];
             $u->lastLogin = $value->getLastLogin();
             $u->enabled = $value->isEnabled();
-            $value->getLastLogin();
+
             $users[$k] = $u;
 
         }
@@ -106,15 +106,6 @@ class ApiController extends FOSRestController
         //return $this->handleView($view);*/
 
     }
-
-
-
-
-
-
-
-
-
 
     /**
      * @Rest\Post("/api/create")
