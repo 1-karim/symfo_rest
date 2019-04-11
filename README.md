@@ -1,3 +1,7 @@
 Rest API avec Symfony3.4
 ========================
-Work in progress
+Foncionnalité integré
+---------------------
+-authentification avec oauth2
+-Create user
+-list all users
