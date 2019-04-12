@@ -3,6 +3,8 @@
 // src/AppBundle/Controller/ApiController.php
 
 namespace AppBundle\Controller;
+use AppBundle\Entity\FbPages;
+use AppBundle\Entity\pageObject;
 use AppBundle\Entity\UserObject;
 use Symfony\Component\Validator\Constraints\Email as EmailConstraint;
 use \FOS\UserBundle\Model\User;
@@ -70,9 +72,7 @@ class ApiController extends FOSRestController
             $u->role = $value->getRoles()[0];
             $u->lastLogin = $value->getLastLogin();
             $u->enabled = $value->isEnabled();
-
             $users[$k] = $u;
-
         }
         return $this->view($users);
 
@@ -161,6 +161,69 @@ class ApiController extends FOSRestController
     }
 
 
+
+
+    /**
+     *
+     * @Rest\Post("/api/fbpage/create")
+     */
+    public function addPageAction(Request $page)
+    {
+
+
+      // $pageManager = $this->getDoctrine()->getManager('AppBundle:FbPages');
+        $newPage = new FbPages();
+
+        $unpackedObj =  $page->request->get('page');
+        try{
+            $newPage->setDescription($unpackedObj['description']);
+            $newPage->setName($unpackedObj['nom']);
+            $newPage->setUserId($unpackedObj['user_id']);
+            $newPage->setUrl($unpackedObj['url']);
+            $pm = $this->getDoctrine()->getManager();
+            $pm->persist($newPage);
+            $pm->flush($newPage);
+            return $this->view('page'.$newPage->getName().' ajoutee avec success',Response::HTTP_CREATED);
+        }catch(\Exception $e){
+            return $this->view($e->getMessage(),Response::HTTP_BAD_REQUEST);
+        }
+
+}
+
+    /**
+     * @Rest\Get("/api/fbpage/list")
+     *
+     *
+     */
+    public function listPageAction()
+    {
+        $username = $this->get('security.token_storage')->getToken()->getUsername();
+
+        $pages[] = array();
+
+        $criteria = array('username' => $username);
+
+        $currentUser = $this->getDoctrine()->getRepository('AppBundle:User')->findOneBy($criteria);
+        $user_id = $currentUser->getId();
+
+        $criteria = array('userId' => $user_id);
+
+        $result = $this->getDoctrine()->getRepository('AppBundle:FbPages')->findBy($criteria);
+        foreach ($result as $k => $value){
+            $p = new pageObject();
+            $p->id = $value->getId();
+            $p->name = $value->getName();
+            $p->url= $value->getUrl();
+            $p->description = $value->getDescription();
+
+            $pages[$k] = $p;
+        }
+
+        return $this->view($pages);
+
+    }
+
+
     //check password
     public function validPassword($user, $oldPassword){
 
@@ -170,6 +233,7 @@ class ApiController extends FOSRestController
 
         $bool = $encoder->isPasswordValid($user->getPassword(),$oldPassword,$user->getSalt());
     }
+
 
 
 
