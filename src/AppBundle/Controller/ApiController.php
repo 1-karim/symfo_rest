@@ -237,6 +237,14 @@ class ApiController extends FOSRestController
 
         $token = $request->request->get('token');//recuperer le token
 
+        //verifier client
+        if(!$client = $this->get('fos_oauth_server.client_manager')->findClientBy(array('secret'=>'333y6tje9ksg8sok04w8k0scowwwcg4s48wwo0c8swk0cookoc'))){
+            //client non-verifié
+            return $this->view('unauthorized client',Response::HTTP_UNAUTHORIZED);
+
+
+
+        }
         //initialiser l'obj de connection fb
         $fb = new \Facebook\Facebook([
             'app_id' => '418707598894970', //APP ID
@@ -276,23 +284,15 @@ class ApiController extends FOSRestController
             $currentUser->setEmail($me->getEmail());
             $currentUser->setEmailCanonical($me->getEmail());
             $currentUser->setUsername($me->getName());
-            $currentUser->setPlainPassword('password');
+            $currentUser->setPlainPassword($this->generateRandomPassword());
 
             $currentUser->setUsernameCanonical($me->getName());
             $currentUser->setFacebookID($me->getId());
             $em->persist($currentUser);
         }
 
-        //verifier client
-        if($client = $this->get('fos_oauth_server.client_manager')->findClientBy(array('secret'=>'333y6tje9ksg8sok04w8k0scowwwcg4s48wwo0c8swk0cookoc'))){
-            //client verifié
-            $token = $this->get('fos_oauth_server.server')->createAccessToken($client,$currentUser);
-
-            return $this->view($token,Response::HTTP_ACCEPTED);
-        }else{
-            //client non-verifié
-            return $this->view('unauthorized client',Response::HTTP_UNAUTHORIZED);
-        }
+        $token = $this->get('fos_oauth_server.server')->createAccessToken($client,$currentUser);
+        return $this->view($token,Response::HTTP_OK);
     }
 
     function generateRandomPassword($length = 10) {
