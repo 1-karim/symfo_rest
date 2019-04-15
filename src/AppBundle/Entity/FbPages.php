@@ -49,6 +49,11 @@ class FbPages
      */
     private $userId;
 
+    /**
+     * @var mixed
+     * @ORM\Column(name="facebookID, type="integer")
+     */
+    private $facebookID ;
 
     /**
      * Get id

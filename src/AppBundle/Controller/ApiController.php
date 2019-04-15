@@ -247,8 +247,8 @@ class ApiController extends FOSRestController
         }
         //initialiser l'obj de connection fb
         $fb = new \Facebook\Facebook([
-            'app_id' => '418707598894970', //APP ID
-            'app_secret' => '957384d6fdb059f6f48f158d5a62b0ac', //APP SECRET
+            'app_id' => 'MON APP ID', //APP ID
+            'app_secret' => 'MON APP SECRET', //APP SECRET
             'default_graph_version' => 'v2.10',
             'default_access_token' => $token,  //le token recuperer dans la requete
         ]);
