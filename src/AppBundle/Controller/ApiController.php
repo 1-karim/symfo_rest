@@ -6,6 +6,13 @@ namespace AppBundle\Controller;
 use AppBundle\Entity\FbPages;
 use AppBundle\Entity\pageObject;
 use AppBundle\Entity\UserObject;
+use Facebook\Facebook;
+use FOS\OAuthServerBundle\Model\Token;
+use http\Client;
+use http\Header;
+use OAuth2\Model\IOAuth2Client;
+use Symfony\Component\HttpFoundation\HeaderBag;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Validator\Constraints\Email as EmailConstraint;
 use \FOS\UserBundle\Model\User;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -86,6 +93,7 @@ class ApiController extends FOSRestController
      *
      *
      */
+
     public function UpdateUserAction(Request $user)
     {
         $content = json_decode($user->getContent());
@@ -170,8 +178,6 @@ class ApiController extends FOSRestController
     public function addPageAction(Request $page)
     {
 
-
-      // $pageManager = $this->getDoctrine()->getManager('AppBundle:FbPages');
         $newPage = new FbPages();
 
         $unpackedObj =  $page->request->get('page');
@@ -183,7 +189,7 @@ class ApiController extends FOSRestController
             $pm = $this->getDoctrine()->getManager();
             $pm->persist($newPage);
             $pm->flush($newPage);
-            return $this->view('page'.$newPage->getName().' ajoutee avec success',Response::HTTP_CREATED);
+            return $this->view('page '.$newPage->getName().' ajoutee avec success',Response::HTTP_CREATED);
         }catch(\Exception $e){
             return $this->view($e->getMessage(),Response::HTTP_BAD_REQUEST);
         }
@@ -223,15 +229,80 @@ class ApiController extends FOSRestController
 
     }
 
+    /**
+     * @Rest\Post("/fb/login")
+     *
+     */
+    public function facebookLogin(Request $request){
 
-    //check password
-    public function validPassword($user, $oldPassword){
+        $token = $request->request->get('token');//recuperer le token
 
-        $user = new Users();    //$this->getDoctrine()->getRepo->getUser($id)
-        $factory = $this->get('security.encoder_factory');
-        $encoder = $factory->getEncoder($user);
+        //initialiser l'obj de connection fb
+        $fb = new \Facebook\Facebook([
+            'app_id' => '418707598894970', //APP ID
+            'app_secret' => '957384d6fdb059f6f48f158d5a62b0ac', //APP SECRET
+            'default_graph_version' => 'v2.10',
+            'default_access_token' => $token,  //le token recuperer dans la requete
+        ]);
 
-        $bool = $encoder->isPasswordValid($user->getPassword(),$oldPassword,$user->getSalt());
+
+        //VERIFICATION DU TOKEN(recu du front) AVEC FB
+        try {
+            $response = $fb->get('/me?fields=id,name,email', $token);
+        } catch(\Facebook\Exceptions\FacebookResponseException $e){
+            // si graph retourne une erreur
+            return $this->view( 'Graph returned an error: ' . $e->getMessage(),Response::HTTP_BAD_REQUEST);
+        } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+            // Si la validation echoue ou le FBsdk retourne une erreur
+           return $this->view( 'Facebook SDK returned an error: ' . $e->getMessage(),Response::HTTP_BAD_REQUEST);
+
+        }
+
+        $me = $response->getGraphUser();//recuperer l'utilisateur fb.
+
+        // verifier si utilisateur existant
+        $repository = $this->getDoctrine()->getRepository('AppBundle:User');
+        $currentUser = $repository->findOneBy(['email' => $me->getEmail()]);
+
+        if($currentUser){ //si utilisateur existant
+            //ajouter facebookID
+            $currentUser->setFacebookID($me->getId());
+
+        }else{
+            //nouvel utilisateur
+            $em = $this->getDoctrine()->getManager();
+
+            $currentUser = new \AppBundle\Entity\User();
+            $currentUser->setEmail($me->getEmail());
+            $currentUser->setEmailCanonical($me->getEmail());
+            $currentUser->setUsername($me->getName());
+            $currentUser->setPlainPassword('password');
+
+            $currentUser->setUsernameCanonical($me->getName());
+            $currentUser->setFacebookID($me->getId());
+            $em->persist($currentUser);
+        }
+
+        //verifier client
+        if($client = $this->get('fos_oauth_server.client_manager')->findClientBy(array('secret'=>'333y6tje9ksg8sok04w8k0scowwwcg4s48wwo0c8swk0cookoc'))){
+            //client verifié
+            $token = $this->get('fos_oauth_server.server')->createAccessToken($client,$currentUser);
+
+            return $this->view($token,Response::HTTP_ACCEPTED);
+        }else{
+            //client non-verifié
+            return $this->view('unauthorized client',Response::HTTP_UNAUTHORIZED);
+        }
+    }
+
+    function generateRandomPassword($length = 10) {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomString;
     }
 
 

@@ -25,10 +25,35 @@ class User extends BaseUser
 
 
     /**
+     * @var mixed
+     * @ORM\Column(name="facebook_id", type="string")
+     */
+    protected $facebookID;
+
+    /**
+     * @return mixed
+     */
+    public function getFacebookID()
+    {
+        return $this->facebookID;
+    }
+
+    /**
+     * @param mixed $facebookID
+     */
+    public function setFacebookID($facebookID)
+    {
+        $this->facebookID = $facebookID;
+    }
+
+
+    /**
      * Get id
      *
      * @return integer
      */
+
+
     public function getId()
     {
         return $this->id;
