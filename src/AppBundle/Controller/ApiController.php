@@ -238,7 +238,7 @@ class ApiController extends FOSRestController
         $token = $request->request->get('token');//recuperer le token
 
         //verifier client
-        if(!$client = $this->get('fos_oauth_server.client_manager')->findClientBy(array('secret'=>'333y6tje9ksg8sok04w8k0scowwwcg4s48wwo0c8swk0cookoc'))){
+        if(!$client = $this->get('fos_oauth_server.client_manager')->findClientBy(array('secret'=>'APP SECRET'))){
             //client non-verifié
             return $this->view('unauthorized client',Response::HTTP_UNAUTHORIZED);
 
@@ -247,8 +247,8 @@ class ApiController extends FOSRestController
         }
         //initialiser l'obj de connection fb
         $fb = new \Facebook\Facebook([
-            'app_id' => 'MON APP ID', //APP ID
-            'app_secret' => 'MON APP SECRET', //APP SECRET
+            'app_id' => 'FB APP ID', //FACEBOOK APP ID
+            'app_secret' => 'FB APP SECRET', //FACEBOOK APP SECRET
             'default_graph_version' => 'v2.10',
             'default_access_token' => $token,  //le token recuperer dans la requete
         ]);
