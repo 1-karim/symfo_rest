@@ -26,9 +26,30 @@ class User extends BaseUser
 
     /**
      * @var mixed
-     * @ORM\Column(name="facebook_id", type="string")
+     * @ORM\Column(name="facebook_id", type="string",nullable=true)
      */
     protected $facebookID;
+
+    /**
+     * @return mixed
+     */
+    public function getClient()
+    {
+        return $this->client;
+    }
+
+    /**
+     * @param mixed $client
+     */
+    public function setClient($client)
+    {
+        $this->client = $client;
+    }
+
+    /**
+     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Client")
+     */
+    protected $client;
 
     /**
      * @return mixed

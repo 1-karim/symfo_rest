@@ -148,10 +148,10 @@ class ApiController extends FOSRestController
                $newUser->setUsername($userObject->username);
                $newUser->setUsernameCanonical($userObject->username);
                $newUser->setEnabled($userObject->enabled);
+               $newUser->setClient($userObject->client);
                if($userObject->role == "ROLE_ADMIN"){
                    $newUser->addRole('ROLE_ADMIN');
-               }if($userObject->role == "ROLE_SUPER_ADMIN"){
-                   $newUser->addRole('ROLE_SUPER_ADMIN');
+
                }else{
                    $newUser->addRole('ROLE_USER');
                }
@@ -235,20 +235,20 @@ class ApiController extends FOSRestController
      */
     public function facebookLogin(Request $request){
 
-        $token = $request->request->get('token');//recuperer le token
+        $token = $request->request->get('fb_access_token');//recuperer le token
+        $client_secret = $request->request->get('client_secret');
+        $fb_app_id = $request->request->get('fb_app_id');
+        $fb_app_secret = $request->request->get('fb_app_secret');
 
         //verifier client
-        if(!$client = $this->get('fos_oauth_server.client_manager')->findClientBy(array('secret'=>'APP SECRET'))){
+        if(!$client = $this->get('fos_oauth_server.client_manager')->findClientBy(array('secret'=>$client_secret))){
             //client non-verifié
             return $this->view('unauthorized client',Response::HTTP_UNAUTHORIZED);
-
-
-
         }
         //initialiser l'obj de connection fb
         $fb = new \Facebook\Facebook([
-            'app_id' => 'FB APP ID', //FACEBOOK APP ID
-            'app_secret' => 'FB APP SECRET', //FACEBOOK APP SECRET
+            'app_id' => $fb_app_id, //FACEBOOK APP ID
+            'app_secret' => $fb_app_secret, //FACEBOOK APP SECRET
             'default_graph_version' => 'v2.10',
             'default_access_token' => $token,  //le token recuperer dans la requete
         ]);
@@ -293,6 +293,16 @@ class ApiController extends FOSRestController
 
         $token = $this->get('fos_oauth_server.server')->createAccessToken($client,$currentUser);
         return $this->view($token,Response::HTTP_OK);
+    }
+
+
+    /**
+     * @Rest\Get("/api/client/list")
+     */
+    public function clientList(Request $request){
+        $repo = $this->getDoctrine()->getRepository('AppBundle:Admin\Client');
+        $clientList = $repo->findAll();
+        return $this->view($clientList,Response::HTTP_OK);
     }
 
     function generateRandomPassword($length = 10) {

@@ -31,6 +31,13 @@ class FbPages
     /**
      * @var string
      *
+     * @ORM\Column(name="facebook_id", type="string", length=255,nullable=true)
+     */
+    private $facebookID;
+
+    /**
+     * @var string
+     *
      * @ORM\Column(name="url", type="string", length=255, unique=true)
      */
     private $url;
@@ -49,11 +56,7 @@ class FbPages
      */
     private $userId;
 
-    /**
-     * @var mixed
-     * @ORM\Column(name="facebookID, type="integer")
-     */
-    private $facebookID ;
+
 
     /**
      * Get id
