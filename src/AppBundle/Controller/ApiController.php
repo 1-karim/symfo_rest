@@ -5,6 +5,7 @@
 namespace AppBundle\Controller;
 use AppBundle\Entity\FbPages;
 use AppBundle\Entity\pageObject;
+use AppBundle\Entity\Reclamation;
 use AppBundle\Entity\UserObject;
 use Facebook\Facebook;
 use FOS\OAuthServerBundle\Model\Token;
@@ -23,7 +24,7 @@ use \Symfony\Component\HttpFoundation\Request as Request;
 use mysql_xdevapi\Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\HttpFoundation\Response;
-
+use DateTime;
 
 class ApiController extends FOSRestController
 {
@@ -33,6 +34,7 @@ class ApiController extends FOSRestController
     public function indexAction()
     {
         $user = $this->get('security.token_storage')->getToken()->getUser();
+        $em = $this->getDoctrine()->getRepository('AppBundle:User');
         $view = $this->view($user);
         return $this->handleView($view);
 
@@ -78,7 +80,44 @@ class ApiController extends FOSRestController
             $u->email = $value->getEmail();
             $u->role = $value->getRoles()[0];
             $u->lastLogin = $value->getLastLogin();
-            $u->enabled = $value->isEnabled();
+            if(($value->getClient())){
+                $u->client = $value->getClient()->getName();
+            }else{
+                $u->client = "no client associated";
+            }
+
+            $users[$k] = $u;
+        }
+        return $this->view($users);
+
+
+    }
+
+    /**
+     * @Rest\Get("/api/client/users")
+     *
+     *
+     */
+    public function listUserByClientAction(Request $request)
+    {
+        $client_id =  $request->request->get('client_id');
+
+        $users[] = array();
+        $repository  = $this->getDoctrine()->getRepository('AppBundle:User');
+        $list = $repository->findAll();
+        foreach ($list as $k => $value){
+            $u = new UserObject();
+            $u->id = $value->getId();
+            $u->username = $value->getUsername();
+            $u->email = $value->getEmail();
+            $u->role = $value->getRoles()[0];
+            $u->lastLogin = $value->getLastLogin();
+            if(($value->getClient())){
+                $u->client = $value->getClient()->getName();
+            }else{
+                $u->client = "no client associated";
+            }
+
             $users[$k] = $u;
         }
         return $this->view($users);
@@ -99,7 +138,6 @@ class ApiController extends FOSRestController
         $content = json_decode($user->getContent());
         $userObject = $content->user;
         $userManager = $this->container->get('fos_user.user_manager');
-
 
         $repository  = $this->getDoctrine()->getRepository('AppBundle:User');
         $user = $repository->find($content->id);
@@ -140,6 +178,8 @@ class ApiController extends FOSRestController
 
         if($userObject->password == $userObject->confirm_password){
 
+            $clientRepo = $this->getDoctrine()->getRepository('AppBundle:Admin\Client');
+            $myClient = $clientRepo->findOneBy(['id'=>(int)$userObject->client]);
            try{
                $newUser->setUsername($userObject->username);
                $newUser->setPlainPassword($userObject->password);
@@ -148,7 +188,7 @@ class ApiController extends FOSRestController
                $newUser->setUsername($userObject->username);
                $newUser->setUsernameCanonical($userObject->username);
                $newUser->setEnabled($userObject->enabled);
-               $newUser->setClient($userObject->client);
+               $newUser->setClient($myClient);
                if($userObject->role == "ROLE_ADMIN"){
                    $newUser->addRole('ROLE_ADMIN');
 
@@ -297,13 +337,43 @@ class ApiController extends FOSRestController
 
 
     /**
-     * @Rest\Get("/api/client/list")
-     */
+ * @Rest\Get("/api/client/list")
+ */
     public function clientList(Request $request){
         $repo = $this->getDoctrine()->getRepository('AppBundle:Admin\Client');
         $clientList = $repo->findAll();
         return $this->view($clientList,Response::HTTP_OK);
     }
+
+
+
+    /**
+     * @Rest\Post("/api/reclamation/add")
+     */
+    public function addReclamation(Request $request){
+        $newreclamation = new Reclamation();
+
+        $reclamation =  $request->request->get('reclamation');
+        $em = $this->getDoctrine()->getManager();
+        try{
+            $myUser = $this->getDoctrine()->getRepository('AppBundle:User')->findOneBy(['id'=>$reclamation['user_id']]);
+            $newreclamation->setUserId($myUser);
+            $myClient = $this->getDoctrine()->getRepository('AppBundle:Admin\Client')->findOneBy(['id'=>$reclamation['client_id']]);
+            $newreclamation->setClientId($myClient);
+            $newreclamation->setContenu($reclamation['contenu']);
+            $newreclamation->setCreatedAt((new DateTime));
+            $newreclamation->setSujet($reclamation['sujet']);
+            $em->persist($newreclamation);
+            $em->flush($newreclamation);
+            return $this->view($newreclamation,Response::HTTP_CREATED);
+        }catch(\Exception $e){
+            return $this->view($e->getMessage(),Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+
+
+
 
     function generateRandomPassword($length = 10) {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -314,10 +384,6 @@ class ApiController extends FOSRestController
         }
         return $randomString;
     }
-
-
-
-
 
 
 }

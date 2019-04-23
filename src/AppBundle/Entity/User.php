@@ -47,7 +47,7 @@ class User extends BaseUser
     }
 
     /**
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Client")
+     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Admin\Client")
      */
     protected $client;
 

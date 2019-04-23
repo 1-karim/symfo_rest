@@ -17,6 +17,7 @@ class UserObject
     public $id ;
     public $enabled;
     public $lastLogin;
+    public $client;
 
     function __construct()
     {
