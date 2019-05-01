@@ -28,7 +28,9 @@ security:
         main:
             anonymous: ~
 
-
+    access_control:
+        # require ROLE_ADMIN for /admin*
+        - { path: ^/api/admin, roles: ROLE_ADMIN }
             # activate different ways to authenticate
 
             # https://symfony.com/doc/current/security.html#a-configuring-how-your-users-will-authenticate

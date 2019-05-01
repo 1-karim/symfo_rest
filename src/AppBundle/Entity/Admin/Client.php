@@ -12,12 +12,14 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Client
 {
+
     /**
      * @var int
      *
      * @ORM\Column(name="id", type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
+     *
      */
     private $id;
 
@@ -34,6 +36,28 @@ class Client
      * @ORM\Column(name="tel", type="string", length=100, nullable=true, unique=true)
      */
     private $tel;
+
+    /**
+     * var int
+     * @ORM\Column(name="members",type="integer")
+     */
+    private $members = 0;
+
+    /**
+     * @return mixed
+     */
+    public function getMembers()
+    {
+        return $this->members;
+    }
+
+    /**
+     * @param mixed $members
+     */
+    public function setMembers($members)
+    {
+        $this->members = $members;
+    }
 
     /**
      * @var string
@@ -70,7 +94,28 @@ class Client
      */
     private $dateInscri;
 
+    /**
+     * @return \DateTime
+     */
+    public function getLastLogin()
+    {
+        return $this->last_login;
+    }
 
+    /**
+     * @param \DateTime $last_login
+     */
+    public function setLastLogin($last_login)
+    {
+        $this->last_login = $last_login;
+    }
+
+
+    /**
+     * @var \DateTime
+     * @ORM\Column(type="datetime",nullable=true)
+     */
+    private $last_login  ;
     /**
      * Get id
      *

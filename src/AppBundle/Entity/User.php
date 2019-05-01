@@ -30,6 +30,8 @@ class User extends BaseUser
      */
     protected $facebookID;
 
+
+
     /**
      * @return mixed
      */
@@ -47,7 +49,8 @@ class User extends BaseUser
     }
 
     /**
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Admin\Client")
+     ** @ORM\ManyToOne(targetEntity="AppBundle\Entity\Admin\Client")
+     *  @ORM\JoinColumn(name="client_id", referencedColumnName="id",onDelete="CASCADE")
      */
     protected $client;
 
