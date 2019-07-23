@@ -12,6 +12,7 @@ use Facebook\Facebook;
 use FOS\OAuthServerBundle\Model\Token;
 use http\Client;
 use http\Header;
+use \AppBundle\Entity\models;
 use OAuth2\Model\IOAuth2Client;
 use Symfony\Component\HttpFoundation\HeaderBag;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -20,12 +21,13 @@ use \FOS\UserBundle\Model\User;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Controller\Annotations\Route;
-use FOS\RestBundle\Request\ParamFetcher;
+
 use \Symfony\Component\HttpFoundation\Request as Request;
-use mysql_xdevapi\Exception;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+
+
 use Symfony\Component\HttpFoundation\Response;
 use DateTime;
+
 
 class ApiController extends FOSRestController
 {
@@ -34,96 +36,129 @@ class ApiController extends FOSRestController
      */
     public function indexAction()
     {
-        $user = $this->get('security.token_storage')->getToken()->getUser();
-        $username = $this->get('security.token_storage')->getToken()->getUsername();
-        $repo = $this->getDoctrine()->getRepository('AppBundle:User');
-        $fosUser = $repo->findOneBy(['username'=>$username]);
+
+
+       $fosUser = $this->get('security.token_storage')->getToken()->getUser();
+
+
+
+        //dateTime system
         $now = new DateTime('now');
+
+        //chercher le client dans le repository
         $userClient = $this->getDoctrine()->getRepository('AppBundle:Admin\Client')->findOneBy(['id' => $fosUser->getClient()->getId()]);
+
+        //mettre a jour lastLogin du client & utilisateur
         $userClient->setLastLogin($now);
-        $this->getDoctrine()->getManager()->flush($userClient);
+        $fosUser->setLastLogin($now);
 
-        $view = $this->view($fosUser);
 
-        return $this->handleView($view);
+
+        //instance de userModal
+        $userModal = new models\UserModel($fosUser);
+        $userModal->setUsername($fosUser->getUsername());
+        $userModal->setEmail($fosUser->getEmail());
+        $userModal->setClient($fosUser->getClient());
+        $userModal->setRole($fosUser->getRoles());
+        $userModal->enabled = $fosUser->isEnabled();
+        $userModal->setLastlogin($fosUser->getLastLogin());
+
+
+        //mise a jour des données dans la bd.
+        $this->getDoctrine()->getManager()->flush();
+
+        //serialization et renvoie des données
+        return $this->view($userModal,Response::HTTP_OK);
 
     }
 
+    /**
+     * @Rest\Post("/api/me/update")
+     *
+     */
+    public function UpdateMeAction(Request $user)
+    {
+        $me = $this->get('security.token_storage')->getToken()->getUser();
+
+        $content = json_decode($user->getContent());
+        $userObject = $user->request->get('user');
+
+        $userManager = $this->container->get('fos_user.user_manager');
+
+        if(!$this->verifEmail($userObject['email'])){
+
+            $error =[
+                "message" => "email invalid",
+                "error_description" => "email invalid"
+            ];
+            return $this->view($error,Response::HTTP_BAD_REQUEST);
+        }
+        if(strlen($userObject['username'])){
+            $me->setUsername($userObject['username']);
+            $me->setUsernameCanonical($userObject['username']);
+        }
+
+        if(strlen($userObject['email'])){
+            $me->setEmail($userObject['email']);
+            $me->setEmailCanonical($userObject['email']);
+        }
+
+        if(strlen($userObject['password'])>4){
+            $me->setPlainPassword($userObject['password']);
+        }
 
 
 
+        $userManager->updateUser($me);
+        return $this->view($user);
+
+
+    }
 /*
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * -ListUser: Lister tout les users dans la BD
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *                                                       * -addUser: Ajouter un utilisateur.
-*                    USER  CONTROLLERS                  * -updateUser: Mettre a jour un utilisateurs.
+*                    USER  CONTROLLERS                  * -updateUser: Mettre a jour un utilisateur.
 *                                                       *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 */
 
 
 
-    /**
-     * @Rest\Get("/api/user/list")
-     *
-     *
-     */
-    public function listUserAction()
-    {
-        $users[] = array();
 
-        $repository  = $this->getDoctrine()->getRepository('AppBundle:User');
-        $list = $repository->findAll();
-        foreach ($list as $k => $value){
-            $u = new UserObject();
-            $u->id = $value->getId();
-            $u->username = $value->getUsername();
-            $u->email = $value->getEmail();
-            $u->role = $value->getRoles()[0];
-            $u->lastLogin = $value->getLastLogin();
-            if(($value->getClient())){
-                $u->client = $value->getClient()->getName();
-            }else{
-                $u->client = "no client associated";
-            }
-
-            $users[$k] = $u;
-        }
-        return $this->view($users);
-
-
-    }
 
     /**
-     * @Rest\Put("/api/user/create")
+     * @Rest\Put("/api/admin/user/create")
      */
     public function addUserAction(Request $user)
     {
+        $fosUser = $this->get('security.token_storage')->getToken()->getUser();
+        $content = json_decode($user->getContent());
+        $userObject = $content->user;
 
-        $emailConstraint = new EmailConstraint();
-
+        //instance de userManager
         $userManager = $this->container->get('fos_user.user_manager');
 
 
         $newUser = $userManager->createUser();
 
-        $content = json_decode($user->getContent());
-        $userObject = $content->user;
-
-        $errors = $this->get('validator')->validate(
-            $userObject->email,
-            $emailConstraint
-        );
-
 
         if ($userObject->password == $userObject->confirm_password) {
 
-            $clientRepo = $this->getDoctrine()->getRepository('AppBundle:Admin\Client');
-            $myClient = $clientRepo->findOneBy(['id' => (int)$userObject->client]);
-            $myClient->setMembers((int)$myClient->getMembers()+1);
-            $this->getDoctrine()->getManager()->persist($myClient);
+            $myClient = $fosUser->getClient();
+
             try {
+                if(!strlen($userObject->username)){
+                    return $this->view('username manquant',Response::HTTP_BAD_REQUEST);
+                }
                 $newUser->setUsername($userObject->username);
                 $newUser->setPlainPassword($userObject->password);
+                if(!$this->verifEmail($userObject->email)){
+                    $error =[
+                        'message'=> 'email invalid',
+                        'error_desc'=>'email invalid'
+                    ];
+                    return $this->view($error,Response::HTTP_BAD_REQUEST);
+                }
                 $newUser->setEmailCanonical($userObject->email);
                 $newUser->setEmail($userObject->email);
                 $newUser->setUsername($userObject->username);
@@ -137,176 +172,135 @@ class ApiController extends FOSRestController
                     $newUser->addRole('ROLE_USER');
                 }
                 $userManager->updateUser($newUser);
-            } catch (Exception $exception) {
-                return $this->view($exception->getMessage(), Response::HTTP_NOT_ACCEPTABLE);
+
+                //incrementer les nombres de compte du client.
+                $myClient->setMembers((int)$myClient->getMembers()+1);
+                $this->getDoctrine()->getManager()->persist($myClient);
+
+
+            } catch(\Doctrine\DBAL\DBALException  $exception) {
+                $error=[
+                    'message' => 'utilisateur/email deja existant',
+                    'error_desc' => $exception->getMessage()
+                ];
+                return $this->view($error, Response::HTTP_BAD_REQUEST);
             }
         } else {
-            return $this->view('mot de passe non-identiques ' . $errors, Response::HTTP_NOT_ACCEPTABLE);
+            return $this->view('mot de passe non-identiques ', Response::HTTP_NOT_ACCEPTABLE);
         }
-        $view = $this->view($newUser);
-        return $this->view($view, Response::HTTP_CREATED);
+
+        return $this->view($newUser, Response::HTTP_CREATED);
 
 
     }
 
-    /**
-     * @Rest\Post("/api/user/update")
-     * @Rest\QueryParam(name="id", requirements="\d+")
-     */
 
+
+    /**
+     * @Rest\Post("/api/admin/user/update")
+     *
+     */
     public function UpdateUserAction(Request $user)
     {
+        $client = $this->get('security.token_storage')->getToken()->getUser()->getClient();
+
         $content = json_decode($user->getContent());
         $userObject = $content->user;
+
         $userManager = $this->container->get('fos_user.user_manager');
 
         $repository  = $this->getDoctrine()->getRepository('AppBundle:User');
-        $user = $repository->find($content->id);
-        $user->setUsername($content->username);
-        $user->setUsernameCanonical($content->username);
-        $user->setEmailCanonical($content->email);
-        $user->setPlainPassword($content->password);
-        $user->setEnabled($content->enabled);
-        $user->setRoles([$content->role]);
 
+        if(!$user = $repository->findOneBy(['id'=> $userObject->id,'client'=>$client])){
+            $error = [
+                "message" => "utilisateur inexistant",
+                "error_description" => "utilisateur introuvable dans la bd"
+            ];
+
+
+            return $this->view($error,Response::HTTP_BAD_REQUEST);
+        }
+
+        if(!$this->verifEmail($userObject->email)){
+
+            $error =[
+                "message" => "email invalid",
+                "error_description" => "email invalid"
+            ];
+            return $this->view($error,Response::HTTP_BAD_REQUEST);
+        }
+        if(strlen($userObject->username)){
+            $user->setUsername($userObject->username);
+            $user->setUsernameCanonical($userObject->username);
+        }
+
+        $user->setEmail($userObject->email);
+        $user->setEmailCanonical($userObject->email);
+        if(strlen($userObject->password)){
+            $user->setPlainPassword($userObject->password);
+        }
+
+        //$user->setEnabled($userObject->enabled);
+        if (strlen($userObject->role)  ) {
+            if($userObject->role == "ROLE_ADMIN"){
+                $user->addRole('ROLE_ADMIN');
+            }
+            else {
+                $user->addRole('ROLE_USER');
+            }
+        }
+
+        $userManager->updateUser($user);
         return $this->view($user);
-        //return $this->handleView($view);*/
+
 
     }
 
     /**
-     * @Rest\Delete("/api/user/delete/{id}")
+     * @Rest\Delete("/api/admin/user/delete/{id}")
      */
     public function DeleteUserAction(Request $request,$id){
+        $client = $this->get('security.token_storage')->getToken()->getUser()->getClient();
         $em = $this->getDoctrine()->getManager();
-        $user = $em->getRepository('AppBundle:User')->findOneBy(['id'=>$id]);
+
+        $user = $em->getRepository('AppBundle:User')->findOneBy(['id'=>$id,'client'=>$client]);
+        if(!$user){
+            return $this->view('utilisateurs inexistant',Response::HTTP_BAD_REQUEST);
+        }
         $em->remove($user);
         $em->flush();
-        return $this->view(Response::HTTP_OK);
+        return $this->view('utilisateur supprimé ',Response::HTTP_OK);
     }
 
 
 
-    /*
-    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -ClientList : lister tout les clients dans la BD.
-    *                                                       * -AddClient: Ajout est init un Client a la BD.
-    *                Client  CONTROLLERS                    * -ClientUser: Lister tout les users appartenant a un Client precis.
-    *                                                       * -UpdateClient: Mettre a jour un client.
-    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -DeleteClient: Supprimer le client ET tout ses utilisateurs
-    */
+
+
+
 
 
     /**
-     * @Rest\Get("/api/admin/client/list")
-     */
-    public function ClientListAction(Request $request){
-        $repo = $this->getDoctrine()->getRepository('AppBundle:Admin\Client');
-        $clientList = $repo->findAll();
-        return $this->view($clientList,Response::HTTP_OK);
-    }
-
-
-    /**
-     * @Rest\Put("/api/admin/client/create")
-     */
-    public function AddClientAction(Request $client)
-    {
-
-        $emailConstraint = new EmailConstraint();
-
-        $clientManager = $this->getDoctrine()->getManager();
-
-
-        $newClient= new \AppBundle\Entity\Admin\Client();
-
-        $sentClient = $client->request->get('client');
-
-
-        $errors = $this->get('validator')->validate(
-            $sentClient['email'],
-            $emailConstraint
-        );
-        try{
-            $newClient->setName($sentClient['name']);
-            $newClient->setTel($sentClient['tel']);
-            $newClient->setEmail($sentClient['email']);
-            $newClient->setDateExp($sentClient['date_exp']);
-            $newClient->setDateInscri($sentClient['date_depart']);
-            $newClient->setOffre($sentClient['abonnement'].' mois');
-            $newClient->setDescription($sentClient['description']);
-            $clientManager->persist($newClient);
-            $clientManager->flush();
-
-        }catch (Exception $exception){
-            return $this->view($exception->getMessage(),Response::HTTP_NOT_ACCEPTABLE);
-        }
-
-        $view =  $this->view($newClient);
-        return $this->view($view,Response::HTTP_CREATED);
-
-
-    }
-
-    /**
-     * @Rest\Post("/api/admin/client/update")
-     */
-    public function UpdateClientAction(Request $client){
-        $updatable = $client->request->get('client');
-        $oldClient = $this->getDoctrine()->getRepository('AppBundle:Admin\Client')->findOneBy(['id'=>$updatable['id']]);
-        if(strlen($updatable['name'])){
-            $oldClient->setName($updatable['name']);
-        }
-        if(strlen($updatable['email'])){
-            $oldClient->setEmail($updatable['email']);
-        }
-        if(strlen($updatable['tel'])){
-            $oldClient->setTel($updatable['tel']);
-        }
-        if(strlen($updatable['offre'])){
-            $oldClient->setOffre($updatable['offre']);
-        }
-        $em = $this->getDoctrine()->getManager();
-        $em->persist($oldClient);
-        $em->flush();
-
-        return $this->view($oldClient);
-
-    }
-
-    /**
-     * @Rest\Delete("/api/admin/client/delete/{id}")
-     */
-    public function DeleteClientAction(Request $request,$id){
-        $em = $this->getDoctrine()->getManager();
-        $client = $em->getRepository('AppBundle:Admin\Client')->findOneBy(['id'=>$id]);
-        $em->remove($client);
-        $em->flush();
-        return $this->view(Response::HTTP_OK);
-    }
-
-    /**
-     * @Rest\Get("/api/client/users")
+     * @Rest\Get("/api/admin/user/list")
      */
     public function ClientUserAction(Request $request)
     {
-        $client_id =  $request->request->get('client_id');
+        $client = $this->get('security.token_storage')->getToken()->getUser()->getClient();
         $users[] = array();
         $repository  = $this->getDoctrine()->getRepository('AppBundle:User');
-        $list = $repository->findAll();
+        $list = $repository->findBy(['client'=>$client]);
         foreach ($list as $k => $value){
             $u = new UserObject();
             $u->id = $value->getId();
             $u->username = $value->getUsername();
             $u->email = $value->getEmail();
             $u->role = $value->getRoles()[0];
-            $u->lastLogin = $value->getLastLogin();
-            if(($value->getClient())){
-                $u->client = $value->getClient()->getName();
-            }else{
-                $u->client = "no client associated";
+            if(!$u->lastLogin = $value->getLastLogin()){
+                $u->lastLogin = 'jamais';
             }
-
+            $u->client = $client->getId();
             $users[$k] = $u;
+
+
         }
         return $this->view($users);
 
@@ -314,7 +308,31 @@ class ApiController extends FOSRestController
     }
 
 
+//*************************CLIENT UPDATE **************************
+    /**
+     * @Rest\Post("/api/admin/client/update")
+     */
+    public function UpdateClientAction(Request $client){
+        $updatable = $client->request->get('client');
+        $oldClient = $this->get('security.token_storage')->getToken()->getUser()->getClient();
 
+        if($this->verifEmail($updatable['email'])){
+            $oldClient->setEmail($updatable['email']);
+        }
+        if(strlen($updatable['tel'])){
+            $oldClient->setTel($updatable['tel']);
+        }
+        if(strlen($updatable['description'])){
+            $oldClient->setDescription($updatable['description']);
+        }
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($oldClient);
+        $em->flush();
+
+        return $this->view($oldClient);
+
+    }
 
 
     /*
@@ -355,14 +373,12 @@ class ApiController extends FOSRestController
      */
     public function listPageAction()
     {
-        $username = $this->get('security.token_storage')->getToken()->getUsername();
+        $user = $this->get('security.token_storage')->getToken()->getUser();
 
         $pages[] = array();
 
-        $criteria = array('username' => $username);
 
-        $currentUser = $this->getDoctrine()->getRepository('AppBundle:User')->findOneBy($criteria);
-        $user_id = $currentUser->getId();
+        $user_id = $user->getId();
 
         $criteria = array('userId' => $user_id);
 
@@ -459,12 +475,12 @@ class ApiController extends FOSRestController
 
 
     /*
+       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * - addReclamation : ajouter 1 reclamation
+       *                                                       * - checkReclamtion: marquer reclamation comme Vu (update)
+       *                RECLAMATION  CONTROLLERS               * - listReclamation : lister tout les reclamations
+       *                                                       * - deleteReclamation : Supprimer une reclamation
        * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-       *                                                       *
-       *                RECLAMATION  CONTROLLERS               *
-       *                                                       *
-       * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-       */
+    */
 
 
     /**
@@ -491,69 +507,21 @@ class ApiController extends FOSRestController
             return $this->view($e->getMessage(),Response::HTTP_BAD_REQUEST);
         }
     }
-    /**
-     * @Rest\Post("/api/reclamation/check")
-     */
-    public function checkReclamation(Request $request){
 
 
-        $reclamation =  $request->request->get('id');
-        $em = $this->getDoctrine()->getManager();
-        try{
-            $vReclamation = $this->getDoctrine()->getRepository('AppBundle:Reclamation')->findOneBy(['id'=>$reclamation]);
+    public function verifEmail($email)
+    {
+        $constraint = new \Symfony\Component\Validator\Constraints\Email();
+        $stringToTest = $email;
 
-            $vReclamation->setVu(1);
-            $em->persist($vReclamation);
-            $em->flush($vReclamation);
-            return $this->view(Response::HTTP_OK);
-        }catch(\Exception $e){
-            return $this->view($e->getMessage(),Response::HTTP_BAD_REQUEST);
+        $errors = $this->get('validator')->validate($stringToTest, $constraint);
+
+        if(count($errors) > 0) {
+            return false;
+        }else{
+            return true;
         }
+
+
     }
-
-    /**
-     * @Rest\Get("/api/reclamation/list")
-     */
-    public function reclamationList(Request $request){
-        $repo = $this->getDoctrine()->getRepository('AppBundle:Reclamation');
-        $reclamationList = $repo->findBy(['vu' => 0]);
-        $reclamations[] = array();
-
-        foreach ($reclamationList as $k => $reclamation){
-            $r = new ReclamationModel();
-            $r->id = $reclamation->getId();
-            $r->user = $reclamation->getUserId()->getUsername();
-            $r->client = $reclamation->getClientId()->getName();
-            $r->sujet = $reclamation->getSujet();
-            $r->contenu = $reclamation->getContenu();
-            $r->created_at = $reclamation->getCreatedAt();
-            $r->vu = $reclamation->isVu();
-            $reclamations[$k] = $r;
-        }
-        return $this->view($reclamations,Response::HTTP_OK);
-    }
-
-    /**
-     * @Rest\Delete("/api/reclamation/delete/{id}")
-     */
-    public function DeleteReclamationAction(Request $request,$id){
-        $em = $this->getDoctrine()->getManager();
-        $reclamation = $em->getRepository('AppBundle:Reclamation')->findOneBy(['id'=>$id]);
-        $em->remove($reclamation);
-        $em->flush();
-        return $this->view(Response::HTTP_OK);
-    }
-
-
-    function generateRandomPassword($length = 10) {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $charactersLength = strlen($characters);
-        $randomString = '';
-        for ($i = 0; $i < $length; $i++) {
-            $randomString .= $characters[rand(0, $charactersLength - 1)];
-        }
-        return $randomString;
-    }
-
-
 }

@@ -33,3 +33,5 @@ services:
     # AppBundle\Service\ExampleService:
     #     arguments:
     #         $someArgument: 'some_value'
+    app.user.service:
+        class: AppBundle\Service\UserService

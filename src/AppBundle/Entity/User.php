@@ -82,4 +82,36 @@ class User extends BaseUser
     {
         return $this->id;
     }
+
+
+    public function hydrate($user)
+    {
+
+
+        foreach($this as $attribut => $value)
+        {
+
+            $setmethod = 'set'.ucfirst($attribut);
+            $getmethod = 'get'.ucfirst($attribut);
+            if(method_exists($this,$setmethod)){
+                //method exists in model
+                if(method_exists($user,$getmethod)){
+                    //method exists in ormObj
+                    $this->$setmethod($user->$getmethod());
+                }
+            }
+        }
+
+    }
+
+    public function objToUser($rawObject){
+
+        foreach($rawObject as $attribut => $value){
+            $setmethod = 'set'.ucfirst($attribut);
+            if(method_exists($this,$setmethod)){
+                $this->$setmethod($value);
+            }
+
+        }
+    }
 }

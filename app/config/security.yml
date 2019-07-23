@@ -16,7 +16,7 @@ security:
             pattern: ^/oauth/v2/token
             security: false
         api:
-            pattern: ^/api                                # tout url commencant contenant sous "api"  sont protegés
+            pattern: ^/api                                # tout url   sous "api"  sont protegés
             fos_oauth: true                            # OAuth2 protected resource
             stateless: true                            # Do no set session cookies
             anonymous: false                           # Anonymous access is not allowed
@@ -31,6 +31,7 @@ security:
     access_control:
         # require ROLE_ADMIN for /admin*
         - { path: ^/api/admin, roles: ROLE_ADMIN }
+        - { path: ^/api/super, roles: ROLE_SUPER_ADMIN }
             # activate different ways to authenticate
 
             # https://symfony.com/doc/current/security.html#a-configuring-how-your-users-will-authenticate
