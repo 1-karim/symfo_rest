@@ -162,48 +162,6 @@ class OramaController extends FOSRestController
 
 
 
-        /*
-        $repository  = $this->getDoctrine()->getRepository('AppBundle:User');
-
-        if(!$user = $repository->find($userObject->id)) {
-            $error = [
-                "message" => "utilisateur inexistant",
-                "error_description" => "utilisateur introuvable dans la bd"
-            ];
-
-
-            return $this->view($error,Response::HTTP_BAD_REQUEST);
-        }
-
-        if(!$this->verifEmail($userObject->email)){
-
-            $error =[
-                "message" => "email invalid",
-                "error_description" => "email invalid"
-            ];
-            return $this->view($error,Response::HTTP_BAD_REQUEST);
-
-        }
-        if(strlen($userObject->username)){
-            $user->setUsername($userObject->username);
-            $user->setUsernameCanonical($userObject->username);
-        }
-
-        $user->setEmail($userObject->email);
-        $user->setEmailCanonical($userObject->email);
-        if(strlen($userObject->password)){
-            $user->setPlainPassword($userObject->password);
-        }
-
-        if ($userObject->role == "ROLE_ADMIN") {
-            $user->addRole('ROLE_ADMIN');
-
-        } else {
-            $user->setRoles(['ROLE_USER']);
-        }
-        $user->setRoles([$userObject->role]);
-        $userManager->updateUser($user);*/
-
 
 
     }

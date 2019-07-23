@@ -1,23 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1f624f4a-beac-415c-945d-ab35aca2e26c" name="Default Changelist" comment="Update : polish_1">
-      <change afterPath="$PROJECT_DIR$/src/AppBundle/Controller/OramaController.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/AppBundle/Entity/models/ClientModel.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/AppBundle/Entity/models/PageModel.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/AppBundle/Entity/models/UserModel.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/AppBundle/Service/ClientService.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/AppBundle/Service/ReclamationService.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/AppBundle/Service/UserService.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/AppBundle/Service/UtilsService.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/config/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/app/config/config.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/config/security.yml" beforeDir="false" afterPath="$PROJECT_DIR$/app/config/security.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/config/services.yml" beforeDir="false" afterPath="$PROJECT_DIR$/app/config/services.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/AppBundle/Controller/ApiController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/AppBundle/Controller/ApiController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/AppBundle/Controller/DefaultController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/AppBundle/Controller/DefaultController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/AppBundle/Entity/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/AppBundle/Entity/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/AppBundle/Entity/UserObject.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/AppBundle/Entity/UserObject.php" afterDir="false" />
+    <list default="true" id="1f624f4a-beac-415c-945d-ab35aca2e26c" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/src/AppBundle/Controller/OramaController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/AppBundle/Controller/OramaController.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -66,8 +51,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/AppBundle/Controller/OramaController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="140" column="52" selection-start-line="140" selection-start-column="52" selection-end-line="140" selection-end-column="52" />
+            <state relative-caret-position="208">
+              <caret line="163" lean-forward="true" selection-start-line="163" selection-end-line="163" />
               <folding>
                 <element signature="e#39#73#0#PHP" expanded="true" />
               </folding>
@@ -183,9 +168,9 @@
         <option value="$PROJECT_DIR$/app/config/services.yml" />
         <option value="$PROJECT_DIR$/src/AppBundle/Controller/ApiController.php" />
         <option value="$PROJECT_DIR$/src/AppBundle/Entity/models/UserModel.php" />
-        <option value="$PROJECT_DIR$/src/AppBundle/Controller/OramaController.php" />
         <option value="$PROJECT_DIR$/src/AppBundle/Entity/User.php" />
         <option value="$PROJECT_DIR$/src/AppBundle/Service/UserService.php" />
+        <option value="$PROJECT_DIR$/src/AppBundle/Controller/OramaController.php" />
       </list>
     </option>
   </component>
@@ -443,7 +428,7 @@
       <workItem from="1563669714172" duration="1441000" />
       <workItem from="1563741080319" duration="1440000" />
       <workItem from="1563756098098" duration="2060000" />
-      <workItem from="1563840802257" duration="8037000" />
+      <workItem from="1563840802257" duration="8484000" />
     </task>
     <task id="LOCAL-00001" summary="polish listAction controller">
       <created>1555003050394</created>
@@ -515,11 +500,18 @@
       <option name="project" value="LOCAL" />
       <updated>1556755712977</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="user service polish 0.8">
+      <created>1563855598007</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1563855598007</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="395701000" />
+    <option name="totallyTimeSpent" value="396148000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -534,7 +526,7 @@
     <frame x="-8" y="-8" width="1376" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15425532" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.15425532" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -546,9 +538,9 @@
       <window_info anchor="bottom" id="TODO" order="6" weight="0.3289689" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Database Changes" order="8" />
-      <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.4977307" visible="true" weight="0.050736498" />
-      <window_info anchor="bottom" id="Terminal" order="10" weight="0.30441898" />
-      <window_info anchor="bottom" id="Event Log" order="11" sideWeight="0.50226927" side_tool="true" weight="0.65139115" />
+      <window_info anchor="bottom" id="Version Control" order="9" sideWeight="0.4969605" weight="0.5302782" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="10" sideWeight="0.9050152" visible="true" weight="0.06710311" />
+      <window_info anchor="bottom" id="Event Log" order="11" sideWeight="0.0949848" side_tool="true" visible="true" weight="0.06710311" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -606,7 +598,8 @@
     <MESSAGE value="reclamation update 1" />
     <MESSAGE value="api controllers polish 1" />
     <MESSAGE value="Update : polish_1" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update : polish_1" />
+    <MESSAGE value="user service polish 0.8" />
+    <option name="LAST_COMMIT_MESSAGE" value="user service polish 0.8" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/vendor/doctrine/orm/lib/Doctrine/ORM/Persisters/Entity/EntityPersister.php">
@@ -1003,8 +996,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/AppBundle/Controller/OramaController.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="140" column="52" selection-start-line="140" selection-start-column="52" selection-end-line="140" selection-end-column="52" />
+        <state relative-caret-position="208">
+          <caret line="163" lean-forward="true" selection-start-line="163" selection-end-line="163" />
           <folding>
             <element signature="e#39#73#0#PHP" expanded="true" />
           </folding>
