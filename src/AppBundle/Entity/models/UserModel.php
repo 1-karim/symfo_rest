@@ -17,27 +17,34 @@ class UserModel
 
 
 
-    public function __construct( $user){
+    public function __construct($user,$profil){
 
 
-        $this->hydrate($user);
+        $this->hydrate($user,$profil);
+
 
     }
 
-    public function hydrate($user)
+    public function hydrate($user,$profil)
     {
 
         foreach($this as $attribut => $value)
         {
+
             $setmethod = 'set'.ucfirst($attribut);
             $getmethod = 'get'.ucfirst($attribut);
             if(method_exists($this,$setmethod)){
-                //method exists in model
+                //if this have setmethod
                 if(method_exists($user,$getmethod)){
-                    //method exists in ormObj
+                    //if user have getmethod
                     $this->$setmethod($user->$getmethod());
-                }
+
             }
+            }
+
+        }
+        if($profil === true){ //hifde password fields
+            $this->password = null;
         }
 
     }

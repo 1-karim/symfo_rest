@@ -37,38 +37,18 @@ class ApiController extends FOSRestController
     public function indexAction()
     {
 
-
        $fosUser = $this->get('security.token_storage')->getToken()->getUser();
-
-
-
         //dateTime system
         $now = new DateTime('now');
-
         //chercher le client dans le repository
         $userClient = $this->getDoctrine()->getRepository('AppBundle:Admin\Client')->findOneBy(['id' => $fosUser->getClient()->getId()]);
-
-        //mettre a jour lastLogin du client & utilisateur
+        //mise a jour lastLogin du client & utilisateur
         $userClient->setLastLogin($now);
         $fosUser->setLastLogin($now);
-
-
-
         //instance de userModal
-        $userModal = new models\UserModel($fosUser);
-        $userModal->setUsername($fosUser->getUsername());
-        $userModal->setEmail($fosUser->getEmail());
-        $userModal->setClient($fosUser->getClient());
-        $userModal->setRole($fosUser->getRoles());
-        $userModal->enabled = $fosUser->isEnabled();
-        $userModal->setLastlogin($fosUser->getLastLogin());
-
-
-        //mise a jour des données dans la bd.
-        $this->getDoctrine()->getManager()->flush();
-
+        $userModal = new models\UserModel($fosUser,true);
         //serialization et renvoie des données
-        return $this->view($userModal,Response::HTTP_OK);
+        return $this->view((array)$userModal,Response::HTTP_OK);
 
     }
 

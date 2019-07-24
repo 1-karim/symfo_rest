@@ -38,7 +38,7 @@ class OramaController extends FOSRestController
 
 
         foreach ($list as $k => $value){
-            $user = new UserModel($value);   //reformat fosUser to user model
+            $user = new UserModel($value,false);   //convert fosUser to userModel
             $users[$k] = $user;              // ajout à tab $users
         }
         return $this->view($users);
@@ -53,18 +53,26 @@ class OramaController extends FOSRestController
     {
 
         $content = json_decode($user->getContent());
-        $userObject = $content->user;
+        $userObject = $content->user;                      //recuperer l'object de la requete
         $em = $this->getDoctrine()->getManager();
         $userService= new UserService($em);
-        //instance de userManager
-        $userModel = new UserModel($userObject);
+        $userModel = new UserModel($userObject,false);//instance de userManager
         $newUser = new User();
         if($userService->isUser($userObject,true)){
             if($userService->validNewUser($userObject) === true){
                 $newUser->objToUser($userObject);
                 $newUser->setClient($em->find('AppBundle:Admin\Client',$userObject->client));
-                $em->persist($newUser);
-                $em->flush();
+                try{
+                    $em->persist($newUser);
+                    $em->flush();
+                }catch(\Doctrine\DBAL\DBALException  $exception) {
+                    $error=[
+                        'message' => 'username/e-mail existant',
+                        'error_desc' => $exception->getMessage()
+                    ];
+                    return $this->view($error, Response::HTTP_BAD_REQUEST);
+                }
+
                 return $this->view((array)$newUser,Response::HTTP_CREATED);
             }else{
                 return $this->view((array)$userService->validNewUser($userObject),Response::HTTP_BAD_REQUEST);
