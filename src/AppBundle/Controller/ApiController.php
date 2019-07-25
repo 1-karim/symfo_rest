@@ -4,35 +4,68 @@
 
 namespace AppBundle\Controller;
 use AppBundle\Entity\FbPages;
-use AppBundle\Entity\models\ReclamationModel;
+
 use AppBundle\Entity\pageObject;
 use AppBundle\Entity\Reclamation;
 use AppBundle\Entity\UserObject;
-use Facebook\Facebook;
-use FOS\OAuthServerBundle\Model\Token;
-use http\Client;
-use http\Header;
+
 use \AppBundle\Entity\models;
-use OAuth2\Model\IOAuth2Client;
-use Symfony\Component\HttpFoundation\HeaderBag;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Validator\Constraints\Email as EmailConstraint;
-use \FOS\UserBundle\Model\User;
+
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Controller\Annotations\Route;
-
 use \Symfony\Component\HttpFoundation\Request as Request;
-
-
 use Symfony\Component\HttpFoundation\Response;
 use DateTime;
+use Nelmio\ApiDocBundle\Annotation\ApiDoc;
+
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use Swagger\Annotations as SWG;
+
 
 
 class ApiController extends FOSRestController
 {
     /**
-     * @Route("/api")
+     * Retourne l'utilisateur courant
+     *
+     *
+     * @ApiDoc(
+     *     resource=true,
+     *     description="retourne l'utilisateur courant",
+     *     section="user",
+     *     statusCodes={
+     *         401="Returned when the user is not authorized to say hello OR access_token expired"
+     *     },
+     *
+     *      headers={
+     *         {
+     *             "name"="Content-type",
+     *             "description"="(Optional) not required in angular 6+",
+     *
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "type"="string",
+     *             "required"=true,
+     *
+     *         }
+     *     },
+     *     output={
+     *      "section"="UserModel",
+     *      "collectionName"="User service",
+     *      "class"="AppBundle\Entity\Models\UserModel.php",
+     *      "description"="User Object ={ username}",
+     *     "authenticationRoles"={"ROLE_ADMIN"}
+     *      }
+     * )
+     *
+     *
+     * @Route("/api",methods={"GET"})
+     *
      */
     public function indexAction()
     {
@@ -53,6 +86,47 @@ class ApiController extends FOSRestController
     }
 
     /**
+     * Update User , Retourne le nouveau utilisateurs.
+     * @ApiDoc(
+     *     authenticationRoles={"Role_ADMIN"},
+     *
+     *     resource=true,
+     *      parameters={
+     *          {"name"="id", "dataType"="integer", "required"=true,"format"="JSON", "description"="target user id"},
+     *          {"name"="user", "dataType"="Object", "required"=true,"format"="JSON", "description"="{  username:string,       email:string,    password:string}"}
+     *      },
+     *     description="update user object",
+     *     section="user",
+     *     statusCodes={
+     *         401="Returned when the user is not authorized to say hello OR access_token expired",
+     *         200="Returned when the operation is done"
+     *     },
+     *
+     *      headers={
+     *         {
+     *             "name"="Content-type",
+     *
+     *             "description"="(Optional) not required in angular 6+",
+     *
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "required"=true,
+     *
+     *         }
+     *     },
+     *     output={
+     *      "section"="UserModel",
+     *      "collectionName"="User service",
+     *      "class"="AppBundle\Entity\Models\UserModel.php",
+     *      "description"="User Object ={ username}",
+     *     "authenticationRoles"={"ROLE_ADMIN"}
+     *      }
+     *
+     * )
+     *
+     *
      * @Rest\Post("/api/me/update")
      *
      */

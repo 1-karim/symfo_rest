@@ -12,6 +12,10 @@ security:
             memory: ~
 
     firewalls:
+        api_doc:
+            pattern: ^/api/doc
+            security: false
+
         oauth_token:                                   # Everyone can access the access token URL.
             pattern: ^/oauth/v2/token
             security: false
