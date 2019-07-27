@@ -8,9 +8,9 @@ use AppBundle\Entity\FbPages;
 use AppBundle\Entity\pageObject;
 use AppBundle\Entity\Reclamation;
 use AppBundle\Entity\UserObject;
-
+use AppBundle\Entity\User;
 use \AppBundle\Entity\models;
-
+use AppBundle\Entity\models\UserModel;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
@@ -22,25 +22,35 @@ use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
-use Swagger\Annotations as SWG;
+use Nelmio\ApiDocBundle\Swagger as SWG;
 
 
 
 class ApiController extends FOSRestController
 {
     /**
-     * Retourne l'utilisateur courant
+     * Retourne l'utilisateur courant . Type : UserModel
      *
      *
      * @ApiDoc(
      *     resource=true,
-     *     description="retourne l'utilisateur courant",
-     *     section="user",
-     *     statusCodes={
-     *         401="Returned when the user is not authorized to say hello OR access_token expired"
+     *     description="Get current user object",
+     *     section="user operations",
+     *     input={
+     *          "class"="AppBundle\Entity\models\UserModel"
      *     },
-     *
-     *      headers={
+     *     statusCodes = {
+     *        201 = "Returned when successful",
+     *        400 = "Returned when the form has errors"
+     *    },
+     *    responseMap = {
+     *        201 = {
+     *            "class" = "AppBundle\Entity\models\UserModel",
+     *            "groups"={"My data"}
+     *        },
+     *        400 = {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+     *    },
+     *     headers={
      *         {
      *             "name"="Content-type",
      *             "description"="(Optional) not required in angular 6+",
@@ -55,11 +65,15 @@ class ApiController extends FOSRestController
      *         }
      *     },
      *     output={
-     *      "section"="UserModel",
+     *      "collection"=false,
      *      "collectionName"="User service",
-     *      "class"="AppBundle\Entity\Models\UserModel.php",
+     *      "class"="UserModel::class",
      *      "description"="User Object ={ username}",
-     *     "authenticationRoles"={"ROLE_ADMIN"}
+     *     "authenticationRoles"={"ROLE_ADMIN"},
+     *       "groups"={"api_create"},
+     *       "parsers"={
+     *         "Nelmio\ApiDocBundle\Parser\JmsMetadataParser"
+     *       }
      *      }
      * )
      *
@@ -86,27 +100,28 @@ class ApiController extends FOSRestController
     }
 
     /**
-     * Update User , Retourne le nouveau utilisateurs.
+     * Mais a jour l'urilisateur courrant (porteur du token) , Retourne l'utilisateur apres mise a jour .  type de retour : Obj UserModel
      * @ApiDoc(
      *     authenticationRoles={"Role_ADMIN"},
-     *
+     *     resourceDescription="Operations on users.",
      *     resource=true,
-     *      parameters={
-     *          {"name"="id", "dataType"="integer", "required"=true,"format"="JSON", "description"="target user id"},
-     *          {"name"="user", "dataType"="Object", "required"=true,"format"="JSON", "description"="{  username:string,       email:string,    password:string}"}
+     *     parameters={
+     *          {"name"="user", "dataType"="Object", "required"=true,"format"="JSON", "description"="user :{ id : integer,  username : string, email : string, client : ClientObj, role : string}"}
      *      },
-     *     description="update user object",
-     *     section="user",
+     *     requirements={
+     *
+     *      },
+     *     description="Update current user",
+     *     section="user operations",
      *     statusCodes={
      *         401="Returned when the user is not authorized to say hello OR access_token expired",
-     *         200="Returned when the operation is done"
+     *         200="contenant l'Obj User"
      *     },
      *
      *      headers={
      *         {
      *             "name"="Content-type",
-     *
-     *             "description"="(Optional) not required in angular 6+",
+     *              "description"="(Optional) not required in angular 6+",
      *
      *         },
      *         {
@@ -117,7 +132,7 @@ class ApiController extends FOSRestController
      *         }
      *     },
      *     output={
-     *      "section"="UserModel",
+     *      "section"="user operations",
      *      "collectionName"="User service",
      *      "class"="AppBundle\Entity\Models\UserModel.php",
      *      "description"="User Object ={ username}",
@@ -181,6 +196,58 @@ class ApiController extends FOSRestController
 
 
     /**
+     *
+     *
+     *
+     * Ajoute un utilisateur dans la meme agence , Retourne l'objet ajouté.
+     * @ApiDoc(
+     *
+     *     resourceDescription="Operations on users.",
+     *     input={"class"= "AppBundle\Entity\models\UserModel", "name"=""},
+     *     resource=true,
+     *     parameters={
+     *          {"name"="user", "dataType"="Json Object", "required"=true,"format"="JSON", "description"=" user :{ username : string , email : string , role : string , password: string }"}
+     *      },
+     *     requirements={
+     *
+     *      },
+     *     description="Update current user",
+     *     section="user operations",
+     *     statusCodes={
+     *
+     *         200="Operation Reussie",
+     *         400="( 'access_token' invalid ) OR (no 'access_token' provided)"
+     *     },
+     *     responseMap={
+     *      200= {"class"=UserModel::class,"groups"={"user"}, "name" = "user","description"="utilisateur ajouté"},
+     *      400= {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+     *
+     *     },
+     *      headers={
+     *         {
+     *             "name"="Content-type",
+     *              "description"="(Optional) not required in angular 6+",
+     *
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "required"=true,
+     *
+     *         }
+     *     },
+     *     output={
+     *
+     *      "section"="user operations",
+     *      "collectionName"="User service",
+     *      "class"="AppBundle\Entity\Models\UserModel",
+     *      "description"="User Object ={ username}",
+     *     "authenticationRoles"={"ROLE_ADMIN"}
+     *      }
+     *
+     * )
+     *@Rest\View(statusCode=Response::HTTP_CREATED)
+     *
      * @Rest\Put("/api/admin/user/create")
      */
     public function addUserAction(Request $user)
@@ -240,7 +307,7 @@ class ApiController extends FOSRestController
                 return $this->view($error, Response::HTTP_BAD_REQUEST);
             }
         } else {
-            return $this->view('mot de passe non-identiques ', Response::HTTP_NOT_ACCEPTABLE);
+            return $this->view('mot de passe non-identiques ', Response::HTTP_BAD_REQUEST);
         }
 
         return $this->view($newUser, Response::HTTP_CREATED);
@@ -251,6 +318,50 @@ class ApiController extends FOSRestController
 
 
     /**
+     *
+     * Mais a jour un utilisateur dans la meme agence que l'utilisateur courrant , Retourne l'utilisateur apres mise a jour ,  type de retour : UserModel
+     * @ApiDoc(
+     *     authenticationRoles={"Role_ADMIN"},
+     *     resourceDescription="user model",
+     *     resource=true,
+     *     parameters={
+     *          {"name"="id", "dataType"="integer", "required"=true,"format"="JSON", "description"="target user id"},
+     *          {"name"="user", "dataType"="Object", "required"=true,"format"="JSON", "description"="user :{ id : integer,  username : string, email : string, client : ClientObj, role : string}"}
+     *      },
+     *     requirements={
+     *
+     *      },
+     *     description="Update user in agence",
+     *     section="user operations",
+     *     statusCodes={
+     *         200="OK",
+     *         400="Operation failed"
+     *         },responseMap={
+     *          200= {"class"=UserModel::class,"groups"={"user"}, "name" = "user","description"="list des utilisateurs sous l'agence du porteur de token" ,"description"="},
+     *          400 = {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+     *           },
+     *      headers={
+     *         {
+     *             "name"="Content-type",
+     *              "description"="(Optional) not required in angular 6+"
+     *
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "required"=true,
+     *
+     *         }
+     *     },
+     *     output={
+     *      "section"="user_operations",
+     *      "class"="AppBundle\Entity\Models\UserModel.php",
+     *      "description"="User Object ={ username}",
+     *     "authenticationRoles"={"ROLE_ADMIN"}
+     *      }
+     *
+     * )
+     * @Rest\View(statusCode=Response::HTTP_CREATED)
      * @Rest\Post("/api/admin/user/update")
      *
      */
@@ -305,7 +416,7 @@ class ApiController extends FOSRestController
         }
 
         $userManager->updateUser($user);
-        return $this->view($user);
+        return $this->view($user,Response::OK);
 
 
     }
@@ -333,9 +444,37 @@ class ApiController extends FOSRestController
 
 
 
-    /**
-     * @Rest\Get("/api/admin/user/list")
-     */
+/**
+ *   list les utilisateur de la meme agence, Retourne UserModel[].
+ * @ApiDoc(
+ *     description="Retrieve list of users.",
+ *     resource=true,
+ *     resourceDescription="user list",
+ *     section="user operations",
+ *     statusCodes={
+ *         200="OK",
+ *         400="Validation failed."
+ *         },responseMap={
+ *          200= {"class"=UserModel::class,"groups"={"user"},"collection"=true, "name" = "user","description"="list des utilisateurs sous l'agence du porteur de token"},
+ *          400 = {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+ *           },
+ *     headers={
+ *         {
+ *             "name"="Content-type",
+ *             "description"="(Optional) Application/JSON",
+ *
+ *         },
+ *         {
+ *             "name"="access_token",
+ *             "description"="access_token valid ",
+ *             "required"=true,
+ *
+ *         }
+ *     }
+ *  )
+ *@Rest\View(statusCode=Response::HTTP_OK)
+ * @Rest\Get("/api/admin/user/list")
+ */
     public function ClientUserAction(Request $request)
     {
         $client = $this->get('security.token_storage')->getToken()->getUser()->getClient();
@@ -356,7 +495,7 @@ class ApiController extends FOSRestController
 
 
         }
-        return $this->view($users);
+        return $this->view($users,Response::HTTP_OK);
 
 
     }
