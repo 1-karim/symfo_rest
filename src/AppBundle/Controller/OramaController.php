@@ -7,6 +7,7 @@ use AppBundle\Entity\models\UserModel;
 use AppBundle\Entity\User;
 use AppBundle\Service\UserService;
 use FOS\RestBundle\Controller\FOSRestController;
+use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\Request;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use \Symfony\Component\HttpFoundation\Response as Response;
@@ -26,8 +27,54 @@ class OramaController extends FOSRestController
     }
 
     /**
+     * list TOUT les utilisateurs , Retourne un tableau de UserModel.
      * @Rest\Get("/api/super/user/list")
      *
+     * @ApiDoc(
+     *     tags={
+     *      "ROLE_SUPER_ADMIN"="#cc3300"
+     *     },
+     *     resourceDescription="Operations on users.",
+     *     input={"class"= "AppBundle\Entity\models\UserModel", "name"=""},
+     *     resource=true,
+     *     authentication=true,
+     *     requirements={
+     *
+     *      },
+     *     description="list all users",
+     *     section="user operations",
+     *     statusCodes={
+     *
+     *         200="Operation Reussie",
+     *         400="( 'access_token' invalid ) OR (no 'access_token' provided)"
+     *     },
+     *     responseMap={
+     *      200= {"class"=UserModel::class,"collection"=true},
+     *      400= {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+     *
+     *     },
+     *      headers={
+     *         {
+     *             "name"="Content-type",
+     *              "description"="(Optional) not required in angular 6+",
+     *
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "required"=true,
+     *
+     *         }
+     *     },
+     *     output={
+     *      "collection"=true,
+     *      "collectionName"="User service",
+     *      "class"="AppBundle\Entity\Models\UserModel",
+     *      "description"="User Object ={ username}",
+     *
+     *      },
+     *     section="SUPER ADMIN"
+     * )
      *
      */
     public function listUserAction()
@@ -46,7 +93,51 @@ class OramaController extends FOSRestController
 
     }
 
-    /**
+    /** add new user .ROLE : SUPER ADMIN
+     * @ApiDoc(
+     *
+     *     resourceDescription="Operations on users.",
+     *     tags={
+     *      "ROLE_SUPER_ADMIN"="#cc3300"
+     *     },
+     *     input={"class"= "AppBundle\Entity\models\UserModel", "name"=""},
+     *     resource=true,
+     *     authentication=true,
+     *     parameters={
+     *          {"name"="user", "dataType"="Json Object", "required"=true,"format"="JSON", "description"=" user :{ username : string , email : string , role : string , password: string }"}
+     *      },
+     *     description="add any user",
+     *     section="user operations",
+     *     statusCodes={
+     *
+     *         200="Operation Reussie",
+     *         400="( 'access_token' invalid ) OR (no 'access_token' provided)"
+     *     },
+     *     section="SUPER ADMIN",
+     *     responseMap={
+     *      200= {"class"=UserModel::class,"groups"={"user"}, "name" = "user","description"="utilisateur ajouté"},
+     *      400= {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+     *
+     *     },
+     *      headers={
+     *         {
+     *             "name"="Content-type",
+     *              "description"="(Optional) not required in angular 6+",
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "required"=true,
+     *         }
+     *     },
+     *     output={
+     *      "section"="user operations",
+     *      "collectionName"="User service",
+     *      "class"="AppBundle\Entity\Models\UserModel",
+     *      "description"="User Object ={ username}",
+     *      }
+     * )
+     * @Rest\View(statusCode=Response::HTTP_CREATED)
      * @Rest\Put("/api/super/user/create")
      */
     public function addUserAction(Request $user)
@@ -58,17 +149,17 @@ class OramaController extends FOSRestController
         $userService= new UserService($em);
         $userModel = new UserModel($userObject,false);//instance de userManager
         $newUser = new User();
-        if($userService->isUser($userObject,true)){
-            if($userService->validNewUser($userObject) === true){
-                $newUser->objToUser($userObject);
-                $newUser->setClient($em->find('AppBundle:Admin\Client',$userObject->client));
+        if($userService->isUser($userObject,true)){       // si l'objet reçu contient les champs requis
+            if($userService->validNewUser($userObject) === true){  // si les valeur sont valide
+                $newUser->objToUser($userObject);                  //hydratation de l'obj ORM
+                $newUser->setClient($em->find('AppBundle:Admin\Client',$userObject->client));   //affectation du client au nouveau utilisateur
                 try{
                     $em->persist($newUser);
                     $em->flush();
-                }catch(\Doctrine\DBAL\DBALException  $exception) {
+                }catch(\Doctrine\DBAL\DBALException  $exception) {   //catch data_base error
                     $error=[
-                        'message' => 'username/e-mail existant',
-                        'error_desc' => $exception->getMessage()
+                        'message' => 'username/e-mail existant',     //reformuler l'erreur
+                        'error_desc' => $exception->getMessage()     //   ,,         ,,
                     ];
                     return $this->view($error, Response::HTTP_BAD_REQUEST);
                 }
@@ -81,60 +172,51 @@ class OramaController extends FOSRestController
             return $this->view('data invalid',Response::HTTP_BAD_REQUEST);
         }
 
-
-
-/*
- * $userManager = $this->container->get('fos_user.user_manager');
-        if ($userObject->password == $userObject->confirm_password) {
-            $clientRepo = $this->getDoctrine()->getRepository('AppBundle:Admin\Client');
-            $myClient = $clientRepo->findOneBy(['id' => (int)$userObject->client]);
-
-            try {
-                $newUser->setUsername($userObject->username);
-                $newUser->setPlainPassword($userObject->password);
-                if(!$this->verifEmail($userObject->email)){
-                    $error =[
-                        'message'=> 'email invalid',
-                        'error_desc'=>'email invalid'
-                    ];
-                    return $this->view($error,Response::HTTP_BAD_REQUEST);
-                }
-                $newUser->setEmailCanonical($userObject->email);
-                $newUser->setEmail($userObject->email);
-                $newUser->setUsername($userObject->username);
-                $newUser->setUsernameCanonical($userObject->username);
-                $newUser->setEnabled(1);
-                $newUser->setClient($myClient);
-                if ($userObject->role == "ROLE_ADMIN") {
-                    $newUser->addRole('ROLE_ADMIN');
-
-                } else {
-                    $newUser->addRole('ROLE_USER');
-                }
-                $userManager->updateUser($newUser);
-
-                //incrementer les nombres de compte du client.
-                $myClient->setMembers((int)$myClient->getMembers()+1);
-                $this->getDoctrine()->getManager()->persist($myClient);
-
-
-            } catch(\Doctrine\DBAL\DBALException  $exception) {
-                $error=[
-                    'message' => 'utilisateur/email deja existant',
-                    'error_desc' => $exception->getMessage()
-                ];
-                return $this->view($error, Response::HTTP_BAD_REQUEST);
-            }
-        } else {
-            return $this->view('mot de passe non-identiques ', Response::HTTP_NOT_ACCEPTABLE);
-        }
-*/
-        return $this->view($newUser, Response::HTTP_CREATED);
-
-
     }
 
     /**
+     * Mais a jour un utilisateur  , Retourne l'utilisateur apres mise a jour ,  type de retour : UserModel
+     * @ApiDoc(
+     *     authenticationRoles={"Role_ADMIN"},
+     *     resourceDescription="user model",
+     *     tags={
+     *      "ROLE_SUPER_ADMIN"="#cc3300"
+     *     },
+     *     authentication=true,
+     *     resource=true,
+     *     parameters={
+     *          {"name"="user", "dataType"="Object", "required"=true,"format"="JSON", "description"="user :{ username : string, email : string, client : ClientObj, role : string , password : string}"}
+     *      },
+     *     description="Update any user ",
+     *     section="SUPER ADMIN",
+     *     statusCodes={
+     *         200="OK",
+     *         400="Operation failed"
+     *         },responseMap={
+     *          200 = {"class"=UserModel::class,"groups"={"user"}, "name" = "user","description"="list tout les utilisateurs" },
+     *          400 = {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+     *           },
+     *      headers={
+     *         {
+     *             "name"="Content-type",
+     *              "description"="(Optional) not required in angular 6+"
+     *
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "required"=true,
+     *
+     *         }
+     *     },
+     *     output={
+     *      "section"="SUPER ADMIN",
+     *      "class"="AppBundle\Entity\Models\UserModel.php",
+     *      "description"="User Object ={ username }"
+     *      }
+     *
+     * )
+     * @Rest\View(statusCode=Response::HTTP_CREATED)
      * @Rest\Post("/api/super/user/update")
      *
      */
@@ -176,6 +258,7 @@ class OramaController extends FOSRestController
 
     /**
      * @Rest\Delete("/api/super/user/delete/{id}")
+     *
      */
     public function DeleteUserAction(Request $request,$id){
         $em = $this->getDoctrine()->getManager();

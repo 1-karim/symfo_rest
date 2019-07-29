@@ -11,6 +11,7 @@ use AppBundle\Entity\UserObject;
 use AppBundle\Entity\User;
 use \AppBundle\Entity\models;
 use AppBundle\Entity\models\UserModel;
+use JMS\Serializer\Serializer;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
@@ -35,7 +36,7 @@ class ApiController extends FOSRestController
      * @ApiDoc(
      *     resource=true,
      *     description="Get current user object",
-     *     section="user operations",
+     *     section="USER",
      *     input={
      *          "class"="AppBundle\Entity\models\UserModel"
      *     },
@@ -43,13 +44,11 @@ class ApiController extends FOSRestController
      *        201 = "Returned when successful",
      *        400 = "Returned when the form has errors"
      *    },
-     *    responseMap = {
-     *        201 = {
-     *            "class" = "AppBundle\Entity\models\UserModel",
-     *            "groups"={"My data"}
-     *        },
-     *        400 = {"class"=UserModel::class, "form_errors"=true, "name" = ""}
-     *    },
+     *     responseMap={
+     *      200= {"class"=UserModel::class,"groups"={"user"}, "name" = "user","description"="utilisateur ajouté"},
+     *      400= {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+     *
+     *     },
      *     headers={
      *         {
      *             "name"="Content-type",
@@ -68,16 +67,14 @@ class ApiController extends FOSRestController
      *      "collection"=false,
      *      "collectionName"="User service",
      *      "class"="UserModel::class",
-     *      "description"="User Object ={ username}",
-     *     "authenticationRoles"={"ROLE_ADMIN"},
-     *       "groups"={"api_create"},
-     *       "parsers"={
-     *         "Nelmio\ApiDocBundle\Parser\JmsMetadataParser"
-     *       }
-     *      }
+     *
+     *      },
+     *     tags={
+     *         "ROLE_USER" = "#99cc33"
+     *     }
      * )
      *
-     *
+     *@Rest\View(statusCode=Response::HTTP_OK)
      * @Route("/api",methods={"GET"})
      *
      */
@@ -95,12 +92,12 @@ class ApiController extends FOSRestController
         //instance de userModal
         $userModal = new models\UserModel($fosUser,true);
         //serialization et renvoie des données
-        return $this->view((array)$userModal,Response::HTTP_OK);
+        return $this->view( (array)$userModal,Response::HTTP_OK);
 
     }
 
     /**
-     * Mais a jour l'urilisateur courrant (porteur du token) , Retourne l'utilisateur apres mise a jour .  type de retour : Obj UserModel
+     * Mais a jour l'utilisateur courant (porteur du token) , Retourne l'utilisateur apres mise a jour .  type de retour : Obj UserModel
      * @ApiDoc(
      *     authenticationRoles={"Role_ADMIN"},
      *     resourceDescription="Operations on users.",
@@ -112,7 +109,7 @@ class ApiController extends FOSRestController
      *
      *      },
      *     description="Update current user",
-     *     section="user operations",
+     *     section="USER",
      *     statusCodes={
      *         401="Returned when the user is not authorized to say hello OR access_token expired",
      *         200="contenant l'Obj User"
@@ -132,13 +129,15 @@ class ApiController extends FOSRestController
      *         }
      *     },
      *     output={
-     *      "section"="user operations",
+     *      "section"="USER",
      *      "collectionName"="User service",
      *      "class"="AppBundle\Entity\Models\UserModel.php",
      *      "description"="User Object ={ username}",
      *     "authenticationRoles"={"ROLE_ADMIN"}
-     *      }
-     *
+     *      },
+     *     tags={
+     *         "ROLE_USER" = "#99cc33"
+     *     }
      * )
      *
      *
@@ -185,21 +184,18 @@ class ApiController extends FOSRestController
     }
 /*
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-*                                                       * -addUser: Ajouter un utilisateur.
-*                    USER  CONTROLLERS                  * -updateUser: Mettre a jour un utilisateur.
-*                                                       *
+*                                                       * -addUser: Ajoute un utilisateur.
+*                    USER  CONTROLLERS                  * -updateUser: Mais a jour un utilisateur.
+*                                                       * -deleteUser: Suppr utilisateur
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 */
-
-
-
 
 
     /**
      *
      *
      *
-     * Ajoute un utilisateur dans la meme agence , Retourne l'objet ajouté.
+     * Ajoute un utilisateurs dans la meme agence , Retourne l'objet ajouté.
      * @ApiDoc(
      *
      *     resourceDescription="Operations on users.",
@@ -211,8 +207,8 @@ class ApiController extends FOSRestController
      *     requirements={
      *
      *      },
-     *     description="Update current user",
-     *     section="user operations",
+     *     description="add new user ",
+     *     section="ADMIN",
      *     statusCodes={
      *
      *         200="Operation Reussie",
@@ -226,7 +222,7 @@ class ApiController extends FOSRestController
      *      headers={
      *         {
      *             "name"="Content-type",
-     *              "description"="(Optional) not required in angular 6+",
+     *              "description"="Application/JSON",
      *
      *         },
      *         {
@@ -238,12 +234,15 @@ class ApiController extends FOSRestController
      *     },
      *     output={
      *
-     *      "section"="user operations",
+     *
      *      "collectionName"="User service",
      *      "class"="AppBundle\Entity\Models\UserModel",
      *      "description"="User Object ={ username}",
      *     "authenticationRoles"={"ROLE_ADMIN"}
-     *      }
+     *      },
+     *     tags={
+     *          "[ROLE_ADMIN]"="#ffae42"
+     *       }
      *
      * )
      *@Rest\View(statusCode=Response::HTTP_CREATED)
@@ -321,7 +320,9 @@ class ApiController extends FOSRestController
      *
      * Mais a jour un utilisateur dans la meme agence que l'utilisateur courrant , Retourne l'utilisateur apres mise a jour ,  type de retour : UserModel
      * @ApiDoc(
-     *     authenticationRoles={"Role_ADMIN"},
+     *
+     *     authenticationRoles={"ROLE_ADMIN"},
+     *
      *     resourceDescription="user model",
      *     resource=true,
      *     parameters={
@@ -332,12 +333,12 @@ class ApiController extends FOSRestController
      *
      *      },
      *     description="Update user in agence",
-     *     section="user operations",
+     *     section="ADMIN",
      *     statusCodes={
      *         200="OK",
      *         400="Operation failed"
      *         },responseMap={
-     *          200= {"class"=UserModel::class,"groups"={"user"}, "name" = "user","description"="list des utilisateurs sous l'agence du porteur de token" ,"description"="},
+     *          200 = {"class"=UserModel::class,"groups"={"user"}, "name" = "user","description"="list tout les utilisateurs" },
      *          400 = {"class"=UserModel::class, "form_errors"=true, "name" = ""}
      *           },
      *      headers={
@@ -355,13 +356,15 @@ class ApiController extends FOSRestController
      *     },
      *     output={
      *      "section"="user_operations",
-     *      "class"="AppBundle\Entity\Models\UserModel.php",
-     *      "description"="User Object ={ username}",
-     *     "authenticationRoles"={"ROLE_ADMIN"}
-     *      }
+     *      "class"="AppBundle\Entity\Models\UserModel",
+     *      "description"="User Object ={ username }"
+     *      },
+     *     tags={
+     *          "[ROLE_ADMIN]"="#ffae42"
+     *       }
      *
      * )
-     * @Rest\View(statusCode=Response::HTTP_CREATED)
+     * @Rest\View(statusCode=Response::HTTP_OK)
      * @Rest\Post("/api/admin/user/update")
      *
      */
@@ -416,26 +419,12 @@ class ApiController extends FOSRestController
         }
 
         $userManager->updateUser($user);
-        return $this->view($user,Response::OK);
+        return $this->view($user,Response::HTTP_OK);
 
 
     }
 
-    /**
-     * @Rest\Delete("/api/admin/user/delete/{id}")
-     */
-    public function DeleteUserAction(Request $request,$id){
-        $client = $this->get('security.token_storage')->getToken()->getUser()->getClient();
-        $em = $this->getDoctrine()->getManager();
 
-        $user = $em->getRepository('AppBundle:User')->findOneBy(['id'=>$id,'client'=>$client]);
-        if(!$user){
-            return $this->view('utilisateurs inexistant',Response::HTTP_BAD_REQUEST);
-        }
-        $em->remove($user);
-        $em->flush();
-        return $this->view('utilisateur supprimé ',Response::HTTP_OK);
-    }
 
 
 
@@ -445,17 +434,17 @@ class ApiController extends FOSRestController
 
 
 /**
- *   list les utilisateur de la meme agence, Retourne UserModel[].
+ *   liste les utilisateur de la meme agence , Retourne UserModel[].
  * @ApiDoc(
- *     description="Retrieve list of users.",
+ *     description="list agence users ",
  *     resource=true,
  *     resourceDescription="user list",
- *     section="user operations",
+ *     section="ADMIN",
  *     statusCodes={
  *         200="OK",
- *         400="Validation failed."
+ *         400="Operation echouée"
  *         },responseMap={
- *          200= {"class"=UserModel::class,"groups"={"user"},"collection"=true, "name" = "user","description"="list des utilisateurs sous l'agence du porteur de token"},
+ *          200= {"class"=UserModel::class,"collection"=true,"description"="list des utilisateurs sous l'agence du porteur de token"},
  *          400 = {"class"=UserModel::class, "form_errors"=true, "name" = ""}
  *           },
  *     headers={
@@ -470,7 +459,10 @@ class ApiController extends FOSRestController
  *             "required"=true,
  *
  *         }
- *     }
+ *     },
+ *     tags={
+ *          "[ROLE_ADMIN]"="#ffae42"
+ *       }
  *  )
  *@Rest\View(statusCode=Response::HTTP_OK)
  * @Rest\Get("/api/admin/user/list")
@@ -500,7 +492,49 @@ class ApiController extends FOSRestController
 
     }
 
+    /**
+     * Supprime un utilisateur de la meme agence .Retourne 200 - OK si Operation reussie.
+     * @ApiDoc(
+     *     resource=true,
+     *
+     *     authenticationRoles={"ADMIN"},
+     *  description="delete user in same agence ",
+     *  requirements={
+     *     {
+     *          "name"="id",
+     *          "dataType"="integer",
+     *          "requirement"="\d+",
+     *          "description"="ID de l'utilisateur cible"
+     *      }
+     *
+     *  },statusCodes={
+     *         200="OK",
+     *         400="Operation failed OR user not found",
+     *          400=""
+     *         },
+     *     responseMap={
+     *          400 = {"class"=UserModel::class, "form_errors"=true}
+     *           },
+     *     section="ADMIN",
+     *     tags={
+     *          "[ROLE_ADMIN]"="#ffae42"
+     *       }
+     * )
+     * @Rest\View(statusCode=Response::HTTP_OK)
+     * @Rest\Delete("/api/admin/user/delete/{id}" )
+     */
+    public function DeleteUserAction(Request $request,$id){
+        $client = $this->get('security.token_storage')->getToken()->getUser()->getClient();
+        $em = $this->getDoctrine()->getManager();
 
+        $user = $em->getRepository('AppBundle:User')->findOneBy(['id'=>$id,'client'=>$client]);
+        if(!$user){
+            return $this->view('utilisateurs inexistant',Response::HTTP_BAD_REQUEST);
+        }
+        $em->remove($user);
+        $em->flush();
+        return $this->view('utilisateur supprimé ',Response::HTTP_OK);
+    }
 //*************************CLIENT UPDATE **************************
     /**
      * @Rest\Post("/api/admin/client/update")
