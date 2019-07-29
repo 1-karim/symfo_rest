@@ -7,4 +7,4 @@ Fonctionnalités integrées
 - Gestion des utilisateurs
 - Gestion de resaux sociaux : fb integré
 - Gestion des reclamation
-- Documentation
+- Documentation :NelmioApiDoc integration
