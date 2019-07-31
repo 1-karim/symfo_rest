@@ -1,8 +1,18 @@
 BackEnd Symfony3.4
 ========================
-Fonctionnalités integrées
+Bundles
 ---------------------
-- Authentification oauth v2 (FOSOauthBundle) 
+- FOSRestBundle
+- FOSUserBundle
+- FOSOAuthServerBundle
+- JMSSerializerBundle
+- NelmioCorsBundle
+- NelmioApiDocBundle
+
+
+Functionalities
+---------------------
+- OAUTH2 
 - Ressource : User
 - Ressource : Client(agence)
 - Ressource : Reclamation
