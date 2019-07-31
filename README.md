@@ -1,10 +1,20 @@
-Rest API avec Symfony3.4
+BackEnd Symfony3.4
 ========================
-Fonctionnalités integrées
+Bundles
 ---------------------
-- Authentification oauth v2 (FOSOauthBundle)
-- Gestion des Client
-- Gestion des utilisateurs
-- Gestion de resaux sociaux : fb integré
-- Gestion des reclamation
-- Documentation
+- FOSRestBundle
+- FOSUserBundle
+- FOSOAuthServerBundle
+- JMSSerializerBundle
+- NelmioCorsBundle
+- NelmioApiDocBundle
+
+
+Functionalities
+---------------------
+- OAUTH2 
+- Ressource : User
+- Ressource : Client(agence)
+- Ressource : Reclamation
+- Ressource : fbPage
+- Documentation :NelmioApiDoc integration
