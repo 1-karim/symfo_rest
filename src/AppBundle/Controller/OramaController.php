@@ -32,7 +32,7 @@ class OramaController extends FOSRestController
      *
      * @ApiDoc(
      *     tags={
-     *      "ROLE_SUPER_ADMIN"="#cc3300"
+     *      "operation on : USER"="#003366"
      *     },
      *     resourceDescription="Operations on users.",
      *     input={"class"= "AppBundle\Entity\models\UserModel", "name"=""},
@@ -42,7 +42,6 @@ class OramaController extends FOSRestController
      *
      *      },
      *     description="list all users",
-     *     section="user operations",
      *     statusCodes={
      *
      *         200="Operation Reussie",
@@ -73,7 +72,7 @@ class OramaController extends FOSRestController
      *      "description"="User Object ={ username}",
      *
      *      },
-     *     section="SUPER ADMIN"
+     *     section="Role : SUPER_ADMIN"
      * )
      *
      */
@@ -98,7 +97,7 @@ class OramaController extends FOSRestController
      *
      *     resourceDescription="Operations on users.",
      *     tags={
-     *      "ROLE_SUPER_ADMIN"="#cc3300"
+     *      "operation on : USER"="#003366"
      *     },
      *     input={"class"= "AppBundle\Entity\models\UserModel", "name"=""},
      *     resource=true,
@@ -107,13 +106,13 @@ class OramaController extends FOSRestController
      *          {"name"="user", "dataType"="Json Object", "required"=true,"format"="JSON", "description"=" user :{ username : string , email : string , role : string , password: string }"}
      *      },
      *     description="add any user",
-     *     section="user operations",
+     *     section="Role : SUPER_ADMIN",
      *     statusCodes={
      *
      *         200="Operation Reussie",
      *         400="( 'access_token' invalid ) OR (no 'access_token' provided)"
      *     },
-     *     section="SUPER ADMIN",
+     *
      *     responseMap={
      *      200= {"class"=UserModel::class,"groups"={"user"}, "name" = "user","description"="utilisateur ajouté"},
      *      400= {"class"=UserModel::class, "form_errors"=true, "name" = ""}
@@ -131,7 +130,7 @@ class OramaController extends FOSRestController
      *         }
      *     },
      *     output={
-     *      "section"="user operations",
+     *
      *      "collectionName"="User service",
      *      "class"="AppBundle\Entity\Models\UserModel",
      *      "description"="User Object ={ username}",
@@ -180,15 +179,15 @@ class OramaController extends FOSRestController
      *     authenticationRoles={"Role_ADMIN"},
      *     resourceDescription="user model",
      *     tags={
-     *      "ROLE_SUPER_ADMIN"="#cc3300"
+     *      "operation on : USER"="#003366"
      *     },
      *     authentication=true,
      *     resource=true,
      *     parameters={
-     *          {"name"="user", "dataType"="Object", "required"=true,"format"="JSON", "description"="user :{ username : string, email : string, client : ClientObj, role : string , password : string}"}
+     *          {"name"="user", "dataType"="Object", "required"=true,"format"="JSON", "description"="user :{id : integer , username : string, email : string, client : ClientObj, role : string , password : string}"}
      *      },
      *     description="Update any user ",
-     *     section="SUPER ADMIN",
+     *     section="Role : SUPER_ADMIN",
      *     statusCodes={
      *         200="OK",
      *         400="Operation failed"
@@ -210,7 +209,7 @@ class OramaController extends FOSRestController
      *         }
      *     },
      *     output={
-     *      "section"="SUPER ADMIN",
+     *      "section"="Role : SUPER_ADMIN",
      *      "class"="AppBundle\Entity\Models\UserModel.php",
      *      "description"="User Object ={ username }"
      *      }
@@ -292,6 +291,54 @@ class OramaController extends FOSRestController
     }
 
     /**
+     * * Ajoute un client
+     * * Retourne l'objet ajouté
+     * @ApiDoc(
+     *
+     *     resourceDescription="Operations on users.",
+     *     input={"class"= "AppBundle\Entity\Client", "name"=""},
+     *     resource=true,
+     *     parameters={
+     *          {"name"="client", "dataType"="Json Object", "required"=true,"format"="JSON", "description"=" user :{ username : string , email : string , role : string , password: string }"}
+     *      },
+     *     requirements={
+     *
+     *      },
+     *     description="add new Client ",
+     *     section="Role : SUPER_ADMIN",
+     *     statusCodes={
+     *
+     *         200="Operation Reussie",
+     *         400="( 'access_token' invalid ) OR (no 'access_token' provided)"
+     *     },
+     *     responseMap={
+     *      200= {"class"=Client::class,"groups"={"user"},"description"="Operation Reussie"},
+     *      400= {"class"=Client::class, "form_errors"=true,}
+     *
+     *     },
+     *      headers={
+     *         {
+     *             "name"="Content-type",
+     *              "description"="Application/JSON",
+     *
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "required"=true,
+     *
+     *         }
+     *     },
+     *     output={
+     *      "class"="AppBundle\Entity\Client"
+     *      },
+     *     tags={
+     *          "operation on : Client"="#065535"
+     *       },
+     *     authentication=true
+     * )
+     *@Rest\View(statusCode=Response::HTTP_CREATED)
+     *
      * @Rest\Put("/api/super/client/create")
      */
     public function AddClientAction(Request $client)
@@ -310,6 +357,8 @@ class OramaController extends FOSRestController
             if(!strlen($sentClient['name'])){
                 return $this->view('nom manquant',Response::HTTP_BAD_REQUEST);
             }
+
+           // to validnewclient fn
             $newClient->setName($sentClient['name']);
             $newClient->setTel($sentClient['tel']);
             if(!$this->verifEmail($sentClient['email'])){
@@ -321,11 +370,11 @@ class OramaController extends FOSRestController
             $newClient->setEmail($sentClient['email']);
             $newClient->setDateExp($sentClient['date_exp']);
             $newClient->setDateInscri($sentClient['date_depart']);
-            $newClient->setOffre($sentClient['abonnement'].' mois');
+            $newClient->setOffre($sentClient['offre'].' mois');
             $newClient->setDescription($sentClient['description']);
             $clientManager->persist($newClient);
             $clientManager->flush();
-
+            // end validnewclient
         }catch (\Doctrine\DBAL\DBALException $exception){
             return $this->view($exception->getMessage(),Response::HTTP_BAD_REQUEST);
         }
@@ -337,11 +386,69 @@ class OramaController extends FOSRestController
     }
 
     /**
+     *
+     * - Mais a jour  un client
+     * - Retourne l'objet apres mise a jour
+     * @ApiDoc(
+     *
+     *     resourceDescription="user model",
+     *     resource=true,
+     *     parameters={
+     *          {"name"="client", "dataType"="Object", "required"=true,"format"="JSON", "description"="user :{ - id : integer , date_exp : date , offre : string , email : string, tel: string , description: string }"}
+     *      },
+     *
+     *     description="Update client ",
+     *     section="Role : SUPER_ADMIN",
+     *     statusCodes={
+     *         200="mise a jour effectué",
+     *         400="Operation failed",
+     *         },responseMap={
+     *          200 = {"class"=Client::class,"description"="l'objet apres mis a jour" },
+     *          400 = {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+     *           },
+     *      headers={
+     *         {
+     *             "name"="Content-type",
+     *              "description"="(Optional) not required in angular 6+"
+     *
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "required"=true,
+     *
+     *         }
+     *     },
+     *     output={
+     *
+     *      "class"="AppBundle\Entity\Client",
+     *      "description"="client Object ={ username }"
+     *      },
+     *     tags={
+     *         "operation on : Client "="#065535"
+     *       },
+     *     authentication=true
+     *
+     * )
+     * @Rest\View(statusCode=Response::HTTP_OK)
+     *
      * @Rest\Post("/api/super/client/update")
      */
     public function UpdateClientAction(Request $client){
         $updatable = $client->request->get('client');
         $oldClient = $this->getDoctrine()->getRepository('AppBundle:Admin\Client')->findOneBy(['id'=>$updatable['id']]);
+
+
+
+        $errors = array();
+        if(!$oldClient){
+            $errors[0]="client not found";
+            return $this->view($errors,Response::HTTP_BAD_REQUEST);
+        }
+        if(!isset($updatable['name'])){
+            $errors[0]=" invalid client object";
+            return $this->view($errors,Response::HTTP_BAD_REQUEST);
+        }
         if(strlen($updatable['name'])){
             $oldClient->setName($updatable['name']);
         }
@@ -358,18 +465,55 @@ class OramaController extends FOSRestController
         $em->persist($oldClient);
         $em->flush();
 
-        return $this->view($oldClient);
+        return $this->view($oldClient,Response::HTTP_OK);
 
     }
     /**
+     *  * Supprime un client .Retourne 200 - OK si Operation reussie.
+     * @ApiDoc(
+     *     resource=true,
+     *     authenticationRoles={"ADMIN"},
+     *     description="delete client ",
+     *  requirements={
+     *     {
+     *          "name"="id",
+     *          "dataType"="integer",
+     *          "requirement"="\d+",
+     *          "description"="ID de l'utilisateur cible"
+     *      }
+     *
+     *  },statusCodes={
+     *         200="OK",
+     *         400="Operation failed"
+     *         },
+     *     responseMap={
+     *          200 = {"class"=Client::class,"description"="l'objet apres mis a jour" },
+     *          400 = {"class"=UserModel::class, "form_errors"=true}
+     *           },
+     *     section="Role : SUPER_ADMIN",
+     *     tags={
+     *          "operation on : Client "="#065535"
+     *       },
+     *     output={
+     *          "class"="AppBundle\Entity\Client",
+     *     },
+     *     authentication=true,
+     * )
+     * @Rest\View(statusCode=Response::HTTP_OK)
      * @Rest\Delete("/api/super/client/delete/{id}")
      */
-    public function DeleteClientAction(Request $request,$id){
+    public function DeleteClientAction($id){
         $em = $this->getDoctrine()->getManager();
         $client = $em->getRepository('AppBundle:Admin\Client')->findOneBy(['id'=>$id]);
-        $em->remove($client);
-        $em->flush();
-        return $this->view(Response::HTTP_OK);
+        if($client){
+            $em->remove($client);
+            $em->flush();
+            return $this->view(Response::HTTP_OK);
+        }else{
+            return $this->view($error='client '.$id.' not found ',Response::HTTP_BAD_REQUEST);
+        }
+
+
     }
 
 

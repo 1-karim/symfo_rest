@@ -19,6 +19,7 @@ class ClientModel
     public $tel;
     public $last_login;
     public $email;
+    public $members;
 
     public function __construct(User $user){
 
@@ -134,5 +135,17 @@ class ClientModel
         $this->email = $email;
     }
 
+    public function isClient($client , $new = true){
+        if(!$new){
+            if(!isset($client->id)){
+                return false;
+            }
+
+        }
+        if( !$client->name || !$client->tel || !$client->offre || !$client->desc || !$client->date_exp || !$client->inscri){
+            return false;
+        }
+        return true;
+    }
 
 }

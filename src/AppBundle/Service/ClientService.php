@@ -19,26 +19,26 @@ class ClientService
         $this->em = $entityManager;
     }
 
-    public function validNewClient($client){      //l'obj $user{username,role,password,email,client}
+    public function validNewClient($client){      //l'obj $client{username,role,password,email,client}
         $errors = array();
 
-        if(!$this->isUser($user,true)){ //            object $user malformé
+        if(!$this->isUser($client,true)){ //            object $client malformé
             $errors[0] = 'invalid data';
             return $errors;
         }
-        if(strlen(trim($user->username)) < 4){                                                      //USERNAME CHECK
+        if(strlen(trim($client->username)) < 4){                                                      //USERNAME CHECK
             array_push($errors,'invalid username');
         }
-        if(!in_array(trim($user->role),array("ROLE_ADMIN","ROLE_USER",""))){                         //ROLE CHECK
+        if(!in_array(trim($client->role),array("ROLE_ADMIN","ROLE_USER",""))){                         //ROLE CHECK
             array_push($errors,'invalid role');
         }
-        if(!filter_var($user->email, FILTER_VALIDATE_EMAIL)){                                  //EMAIL CHECK
+        if(!filter_var($client->email, FILTER_VALIDATE_EMAIL)){                                  //EMAIL CHECK
             array_push($errors,'invalid email');
         }
-        /*if (!$this->em->getRepository('AppBundle:Admin\Client')->find($user->client)){     //CLIENT CHECK
+        /*if (!$this->em->getRepository('AppBundle:Admin\Client')->find($client->client)){     //CLIENT CHECK
            array_push($errors,'client not found');
         }*/
-        if(strlen($user->password) < 4){
+        if(strlen($client->password) < 4){
             array_push($errors,'password invalid');
         }
         if(empty($errors)){

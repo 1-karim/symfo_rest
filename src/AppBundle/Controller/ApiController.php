@@ -36,7 +36,7 @@ class ApiController extends FOSRestController
      * @ApiDoc(
      *     resource=true,
      *     description="Get current user object",
-     *     section="USER",
+     *     section="Role : USER",
      *     input={
      *          "class"="AppBundle\Entity\models\UserModel"
      *     },
@@ -53,14 +53,12 @@ class ApiController extends FOSRestController
      *         {
      *             "name"="Content-type",
      *             "description"="(Optional) not required in angular 6+",
-     *
      *         },
      *         {
      *             "name"="access_token",
      *             "description"="access_token valid ",
      *             "type"="string",
      *             "required"=true,
-     *
      *         }
      *     },
      *     output={
@@ -70,7 +68,7 @@ class ApiController extends FOSRestController
      *
      *      },
      *     tags={
-     *         "ROLE_USER" = "#99cc33"
+     *          "operation on : USER"="#003366"
      *     }
      * )
      *
@@ -103,18 +101,22 @@ class ApiController extends FOSRestController
      *     resourceDescription="Operations on users.",
      *     resource=true,
      *     parameters={
-     *          {"name"="user", "dataType"="Object", "required"=true,"format"="JSON", "description"="user :{ id : integer,  username : string, email : string, client : ClientObj, role : string}"}
+     *          {"name"="user", "dataType"="Object", "required"=true,"format"="JSON", "description"=" user : { username : string, email : string, client : ClientObj, role : string}" }
      *      },
      *     requirements={
      *
      *      },
      *     description="Update current user",
-     *     section="USER",
+     *     section="Role : USER",
      *     statusCodes={
      *         401="Returned when the user is not authorized to say hello OR access_token expired",
      *         200="contenant l'Obj User"
      *     },
+     *     responseMap={
+     *      200= {"class"=UserModel::class,"groups"={"user"}, "name" = "user","description"="utilisateur ajouté"},
+     *      400= {"class"=UserModel::class, "form_errors"=true, "name" = ""}
      *
+     *     },
      *      headers={
      *         {
      *             "name"="Content-type",
@@ -129,14 +131,14 @@ class ApiController extends FOSRestController
      *         }
      *     },
      *     output={
-     *      "section"="USER",
+     *      "section"="Role : USER",
      *      "collectionName"="User service",
      *      "class"="AppBundle\Entity\Models\UserModel.php",
      *      "description"="User Object ={ username}",
      *     "authenticationRoles"={"ROLE_ADMIN"}
      *      },
      *     tags={
-     *         "ROLE_USER" = "#99cc33"
+     *         "operation on : USER"="#003366"
      *     }
      * )
      *
@@ -197,7 +199,6 @@ class ApiController extends FOSRestController
      *
      * Ajoute un utilisateurs dans la meme agence , Retourne l'objet ajouté.
      * @ApiDoc(
-     *
      *     resourceDescription="Operations on users.",
      *     input={"class"= "AppBundle\Entity\models\UserModel", "name"=""},
      *     resource=true,
@@ -208,7 +209,7 @@ class ApiController extends FOSRestController
      *
      *      },
      *     description="add new user ",
-     *     section="ADMIN",
+     *     section="Role : ADMIN",
      *     statusCodes={
      *
      *         200="Operation Reussie",
@@ -241,7 +242,7 @@ class ApiController extends FOSRestController
      *     "authenticationRoles"={"ROLE_ADMIN"}
      *      },
      *     tags={
-     *          "[ROLE_ADMIN]"="#ffae42"
+     *          "operation on : USER"="#003366"
      *       }
      *
      * )
@@ -322,7 +323,6 @@ class ApiController extends FOSRestController
      * @ApiDoc(
      *
      *     authenticationRoles={"ROLE_ADMIN"},
-     *
      *     resourceDescription="user model",
      *     resource=true,
      *     parameters={
@@ -332,8 +332,8 @@ class ApiController extends FOSRestController
      *     requirements={
      *
      *      },
-     *     description="Update user in agence",
-     *     section="ADMIN",
+     *     description="Update user in client",
+     *     section="Role : ADMIN",
      *     statusCodes={
      *         200="OK",
      *         400="Operation failed"
@@ -355,12 +355,12 @@ class ApiController extends FOSRestController
      *         }
      *     },
      *     output={
-     *      "section"="user_operations",
+     *      "section"="Role : ADMIN",
      *      "class"="AppBundle\Entity\Models\UserModel",
      *      "description"="User Object ={ username }"
      *      },
      *     tags={
-     *          "[ROLE_ADMIN]"="#ffae42"
+     *          "operation on : USER"="#003366"
      *       }
      *
      * )
@@ -436,10 +436,10 @@ class ApiController extends FOSRestController
 /**
  *   liste les utilisateur de la meme agence , Retourne UserModel[].
  * @ApiDoc(
- *     description="list agence users ",
+ *     description="list users in same client",
  *     resource=true,
  *     resourceDescription="user list",
- *     section="ADMIN",
+ *     section="Role : ADMIN",
  *     statusCodes={
  *         200="OK",
  *         400="Operation echouée"
@@ -461,7 +461,7 @@ class ApiController extends FOSRestController
  *         }
  *     },
  *     tags={
- *          "[ROLE_ADMIN]"="#ffae42"
+ *          "operation on : USER"="#003366"
  *       }
  *  )
  *@Rest\View(statusCode=Response::HTTP_OK)
@@ -493,12 +493,12 @@ class ApiController extends FOSRestController
     }
 
     /**
-     * Supprime un utilisateur de la meme agence .Retourne 200 - OK si Operation reussie.
+     * Supprime un utilisateur de la meme client .Retourne 200 - OK si Operation reussie.
      * @ApiDoc(
      *     resource=true,
      *
      *     authenticationRoles={"ADMIN"},
-     *  description="delete user in same agence ",
+     *  description="delete user in same client ",
      *  requirements={
      *     {
      *          "name"="id",
@@ -515,9 +515,9 @@ class ApiController extends FOSRestController
      *     responseMap={
      *          400 = {"class"=UserModel::class, "form_errors"=true}
      *           },
-     *     section="ADMIN",
+     *     section="Role : ADMIN",
      *     tags={
-     *          "[ROLE_ADMIN]"="#ffae42"
+     *         "operation on : USER"="#003366"
      *       }
      * )
      * @Rest\View(statusCode=Response::HTTP_OK)
@@ -537,6 +537,52 @@ class ApiController extends FOSRestController
     }
 //*************************CLIENT UPDATE **************************
     /**
+     *
+     * Mais a jour  l'agence de l'utilisateur courrant , Retourne l'objet apres mise a jour ,  type de retour : client
+     * @ApiDoc(
+     *
+     *     authenticationRoles={"ROLE_ADMIN"},
+     *
+     *     resourceDescription="user model",
+     *     resource=true,
+     *     parameters={
+     *
+     *          {"name"="client", "dataType"="Object", "required"=true,"format"="JSON", "description"="user :{ email : string, tel: string , description: string }"}
+     *      },
+     *
+     *     description="Update My client",
+     *     section="Role : ADMIN",
+     *     statusCodes={
+     *         200="mise a jour effectué",
+     *         400="Operation failed"
+     *         },responseMap={
+     *          200 = {"class"=Client::class, "name" = "client","description"="l'objet apres mis a jour" },
+     *          400 = {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+     *           },
+     *      headers={
+     *         {
+     *             "name"="Content-type",
+     *              "description"="(Optional) not required in angular 6+"
+     *
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "required"=true,
+     *
+     *         }
+     *     },
+     *     output={
+     *
+     *      "class"="AppBundle\Entity\Client",
+     *      "description"="client Object ={ username }"
+     *      },
+     *     tags={
+     *          "operation on : Client "="#065535"
+     *       }
+     * )
+     * @Rest\View(statusCode=Response::HTTP_OK)
+     *
      * @Rest\Post("/api/admin/client/update")
      */
     public function UpdateClientAction(Request $client){
