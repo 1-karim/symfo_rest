@@ -282,6 +282,41 @@ class OramaController extends FOSRestController
 
 
     /**
+     *
+     *
+     *  * liste les clients
+     *  * Retourne tab de client
+     * @ApiDoc(
+     *     description="list clients",
+     *     resource=true,
+     *     section="Role : SUPER_ADMIN",
+     *     statusCodes={
+     *         200="OK",
+     *         400="Operation echouée"
+     *         },responseMap={
+     *          200= {"class"=Client::class,"collection"=true},
+     *          400 = {"class"=Client::class, "form_errors"=true, "name" = ""}
+     *           },
+     *     headers={
+     *         {
+     *             "name"="Content-type",
+     *             "description"="(Optional) Application/JSON",
+     *
+     *         },
+     *         {
+     *             "name"="access_token",
+     *             "description"="access_token valid ",
+     *             "required"=true,
+     *
+     *         }
+     *     },
+     *     tags={
+     *          "operation on : Client"="#065535"
+     *       },
+     *     authentication=true
+     *  )
+     *@Rest\View(statusCode=Response::HTTP_OK)
+     *
      * @Rest\Get("/api/super/client/list")
      */
     public function ClientListAction(Request $request){
@@ -404,7 +439,7 @@ class OramaController extends FOSRestController
      *         400="Operation failed",
      *         },responseMap={
      *          200 = {"class"=Client::class,"description"="l'objet apres mis a jour" },
-     *          400 = {"class"=UserModel::class, "form_errors"=true, "name" = ""}
+     *          400 = {"class"=Client::class, "form_errors"=true}
      *           },
      *      headers={
      *         {

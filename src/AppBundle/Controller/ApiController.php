@@ -35,6 +35,7 @@ class ApiController extends FOSRestController
      *
      * @ApiDoc(
      *     resource=true,
+     *     authentication=true,
      *     description="Get current user object",
      *     section="Role : USER",
      *     input={
@@ -98,6 +99,7 @@ class ApiController extends FOSRestController
      * Mais a jour l'utilisateur courant (porteur du token) , Retourne l'utilisateur apres mise a jour .  type de retour : Obj UserModel
      * @ApiDoc(
      *     authenticationRoles={"Role_ADMIN"},
+     *     authentication=true,
      *     resourceDescription="Operations on users.",
      *     resource=true,
      *     parameters={
@@ -200,6 +202,7 @@ class ApiController extends FOSRestController
      * Ajoute un utilisateurs dans la meme agence , Retourne l'objet ajouté.
      * @ApiDoc(
      *     resourceDescription="Operations on users.",
+     *     authentication=true,
      *     input={"class"= "AppBundle\Entity\models\UserModel", "name"=""},
      *     resource=true,
      *     parameters={
@@ -321,8 +324,7 @@ class ApiController extends FOSRestController
      *
      * Mais a jour un utilisateur dans la meme agence que l'utilisateur courrant , Retourne l'utilisateur apres mise a jour ,  type de retour : UserModel
      * @ApiDoc(
-     *
-     *     authenticationRoles={"ROLE_ADMIN"},
+     *     authentication=true,
      *     resourceDescription="user model",
      *     resource=true,
      *     parameters={
@@ -437,6 +439,7 @@ class ApiController extends FOSRestController
  *   liste les utilisateur de la meme agence , Retourne UserModel[].
  * @ApiDoc(
  *     description="list users in same client",
+ *     authentication=true,
  *     resource=true,
  *     resourceDescription="user list",
  *     section="Role : ADMIN",
@@ -496,7 +499,7 @@ class ApiController extends FOSRestController
      * Supprime un utilisateur de la meme client .Retourne 200 - OK si Operation reussie.
      * @ApiDoc(
      *     resource=true,
-     *
+     *      authentication=true,
      *     authenticationRoles={"ADMIN"},
      *  description="delete user in same client ",
      *  requirements={
